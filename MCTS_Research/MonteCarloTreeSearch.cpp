@@ -59,7 +59,7 @@ int MonteCarloTreeSearch::FindNextMove(const Board& pBoard)
 			continue;
 		}
 
-		if (child->WinCount > best_node->WinCount)
+		if (child->VisitCount > best_node->VisitCount)
 			best_node = child;
 	}
 
@@ -157,84 +157,28 @@ Color4f MonteCarloTreeSearch::Simulate(MCTSNode* node)
 		bool has_moved{ false };
 		int rnd_move_idx{ -1 };
 
-		// Start by checking 4 in a rows, if none found go lower
-		for (int i{ 4 }; i > 3; --i)
+
+		// Check if self has a winning move and play it
+		const auto& winning_connect4_moves{ GetCompletingCellsIndices(state_copy, current_player, 4) };
+		rnd_move_idx = utils::GetRandomInt(static_cast<int>(winning_connect4_moves.size()));
+		if (!winning_connect4_moves.empty()
+			&& state_copy.PlacePiece(winning_connect4_moves[rnd_move_idx], current_player))
 		{
-			if (has_moved)
-				break;
+			has_moved = true;
+		}
 
-			// Check if self has a winning move and play it
-			const auto& winning_connect4_moves{ GetCompletingCellsIndices(state_copy, current_player, i) };
-			rnd_move_idx = utils::GetRandomInt(static_cast<int>(winning_connect4_moves.size()));
-			
-
-			// Check which move results in a better evaluation
-			if (!winning_connect4_moves.empty())
-			{
-				float highest_eval{ FLT_MIN };
-				int best_move{ -1 };
-				for (const auto& winning_move : winning_connect4_moves)
-				{
-					Board tmp_state{ state_copy };
-					float new_eval{ EvaluatePosition(tmp_state, current_player, opponent_player) };
-					if (new_eval > highest_eval)
-					{
-						new_eval = highest_eval;
-						best_move = winning_move;
-					}
-				}
-
-				if (best_move != -1 && state_copy.PlacePiece(best_move, current_player))
-				{
-					has_moved = true;
-				}
-			}
-
-			// Play random move if all else fails
-			if (!winning_connect4_moves.empty()
-				&& state_copy.PlacePiece(winning_connect4_moves[rnd_move_idx], current_player))
-			{
-				has_moved = true;
-			}
-
-
-			if (has_moved)
-				break;
-
-
-			const auto& opponent_connect4_moves{ GetCompletingCellsIndices(state_copy, opponent_player, i) };
+		// Check if opponent has winning move and counter it
+		if (!has_moved)
+		{
+			const auto& opponent_connect4_moves{ GetCompletingCellsIndices(state_copy, opponent_player, 4) };
 			rnd_move_idx = utils::GetRandomInt(static_cast<int>(opponent_connect4_moves.size()));
-
-			if (!opponent_connect4_moves.empty())
-			{
-				float highest_eval{ FLT_MIN };
-				int best_move{ -1 };
-				for (const auto& winning_move : opponent_connect4_moves)
-				{
-					Board tmp_state{ state_copy };
-					float new_eval{ EvaluatePosition(tmp_state, current_player, opponent_player) };
-					if (new_eval > highest_eval)
-					{
-						new_eval = highest_eval;
-						best_move = winning_move;
-					}
-				}
-
-				if (best_move != -1 && state_copy.PlacePiece(best_move, current_player))
-				{
-					has_moved = true;
-				}
-			}
-
-			// Play random move if all else fails
 			if (!opponent_connect4_moves.empty()
 				&& state_copy.PlacePiece(opponent_connect4_moves[rnd_move_idx], current_player))
 			{
 				has_moved = true;
 			}
-
 		}
-		
+
 		// Play random move
 		if (!has_moved)
 		{
@@ -263,18 +207,27 @@ Color4f MonteCarloTreeSearch::Simulate(MCTSNode* node)
 void MonteCarloTreeSearch::BackPropagate(MCTSNode* fromNode, Color4f winningPlayer)
 {
 	MCTSNode* current_node{ fromNode };
+	int reward{ 0 };
+
+	// If its player 1 turn it means this node played on my turn
+	if (fromNode->State.IsPlayer1Turn() && winningPlayer == myColor)
+		reward = 1;
+
 
 	while (current_node != nullptr)
 	{
 		++current_node->VisitCount;
 
-		if (winningPlayer != PLAYER1)
-			--current_node->WinCount;
-
 		if (winningPlayer == myColor)
-			++current_node->WinCount;
+			current_node->WinCount += reward;
 
 		current_node = current_node->Parent;
+
+		if (winningPlayer == EMPTY)
+			reward = 0;
+		else
+			reward = 1 - reward;
+
 	};
 }
 
