@@ -5,6 +5,16 @@
 #include <iostream>
 #include "utils.h"
 
+#pragma region MyUtils
+/*! Random Integer */
+int utils::GetRandomInt(int max)
+{
+	if (max == 0)
+		return 0;
+
+	return rand() % max;
+}
+#pragma endregion
 
 #pragma region OpenGLDrawFunctionality
 void utils::SetColor( const Color4f& color )

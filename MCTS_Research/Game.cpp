@@ -8,8 +8,8 @@
 Game::Game( const Window& window ) 
 	: m_Window{ window }
 	, m_pBoard{  new Board(50.0f, window) }
-	, m_pPlayer1{std::make_unique<Player>(Color4f(1.0f,0,0,1.0f), true, "Giuseppe")}
-	, m_pPlayer2{std::make_unique<Player>(Color4f(1.0f, 1.0f, 0, 1.0f), true, "Carlos")}
+	, m_pPlayer1{std::make_unique<Player>(PLAYER1, true, "Giuseppe")}
+	, m_pPlayer2{std::make_unique<Player>(PLAYER2, false, "Carlos")}
 {
 	Initialize( );
 }
@@ -34,7 +34,7 @@ void Game::Update(float elapsedSec)
 {
 	std::shared_ptr<Player> current_player{ m_FirstPlayerTurn ? m_pPlayer1 : m_pPlayer2 };
 	int move{};
-	if (current_player->GetMove(m_pBoard, move))
+	if (!m_GameFinished && current_player->GetMove(*m_pBoard, move))
 	{
 		if (!m_pBoard->PlacePiece(move, current_player->GetColor()))
 		{

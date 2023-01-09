@@ -12,6 +12,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="MCTS">
+      <UniqueIdentifier>{401bd047-0699-4a8a-a758-07ca06d9b004}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Board.cpp">
@@ -23,22 +26,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Framework Files</Filter>
     </ClCompile>
-    <ClCompile Include="Matrix2x3.cpp">
-      <Filter>Framework Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SoundEffect.cpp">
-      <Filter>Framework Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SoundStream.cpp">
-      <Filter>Framework Files</Filter>
-    </ClCompile>
     <ClCompile Include="structs.cpp">
-      <Filter>Framework Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SVGParser.cpp">
-      <Filter>Framework Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
       <Filter>Framework Files</Filter>
     </ClCompile>
     <ClCompile Include="utils.cpp">
@@ -57,29 +45,14 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MonteCarloTreeSearch.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>MCTS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
       <Filter>Framework Files</Filter>
     </ClInclude>
-    <ClInclude Include="Matrix2x3.h">
-      <Filter>Framework Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundEffect.h">
-      <Filter>Framework Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundStream.h">
-      <Filter>Framework Files</Filter>
-    </ClInclude>
     <ClInclude Include="structs.h">
-      <Filter>Framework Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SVGParser.h">
-      <Filter>Framework Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
       <Filter>Framework Files</Filter>
     </ClInclude>
     <ClInclude Include="utils.h">
@@ -101,7 +74,7 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="MonteCarloTreeSearch.h">
-      <Filter>Framework Files</Filter>
+      <Filter>MCTS</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -40,10 +40,10 @@ struct Color4f
 {
 	Color4f( );
 	explicit Color4f( float r, float g, float b, float a );
-	bool operator==(const Color4f& other)
+	bool operator==(const Color4f& other) const
 	{ return (r == other.r && g == other.g && b == other.b && a == other.a); }
 
-	bool operator!=(const Color4f other)
+	bool operator!=(const Color4f other) const
 	{ return !(*this == other); }
 
 	float r;

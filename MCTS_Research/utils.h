@@ -6,6 +6,10 @@ namespace utils
 {
 	const float g_Pi{ 3.1415926535f };
 
+#pragma region MyUtils
+	int GetRandomInt(int max = 1);
+#pragma endregion
+
 #pragma region OpenGLDrawFunctionality
 
 	void SetColor( const Color4f& color );

@@ -3,11 +3,12 @@
 
 // Forward Declarations
 class Board;
+class MonteCarloTreeSearch;
 
 class Player {
 public:
-	Player(const Color4f& color, bool isHuman, const std::string& name) 
-		:m_Color{ color }, m_IsHuman{ isHuman }, m_Name{ name } {};
+	Player(const Color4f& color, bool isHuman, const std::string& name);
+	~Player();
 
 	Color4f GetColor() const { return m_Color; };
 	std::string GetName() { return m_Name; };
@@ -15,7 +16,7 @@ public:
 
 
 	// Gets the player's next move.
-	bool GetMove(Board* pBoard, int& i);
+	bool GetMove(const Board& pBoard, int& i);
 
 	void ProcessMouseDownEvent(const SDL_MouseButtonEvent& e);
 
@@ -26,4 +27,7 @@ private:
 
 	bool m_WaitingForMove{ false };
 	Vector2f m_ClickPos{INVALID_POSITION};
+
+
+	MonteCarloTreeSearch* m_pMCTS;
 };
