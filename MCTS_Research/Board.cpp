@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Board.h"
 #include <iostream>
+#include <random>
 
 Board::Board()
     : m_CellSize{ 50.0f }
@@ -10,6 +11,7 @@ Board::Board()
 {
     m_BoardRect.width = m_NrColumns * m_CellSize;
     m_BoardRect.height = m_NrRows * m_CellSize;
+    m_EvalTable = GenerateBoardWithGaussianValues();
 }
 
 Board::Board(const Board& other)
@@ -230,6 +232,7 @@ void Board::Reset()
     }
 }
 
+
 std::vector<int> Board::GetAvailableActions()
 {
     std::vector<int> availableActions{};
@@ -251,4 +254,42 @@ bool Board::InProgress() const
     if(CheckWin(PLAYER1) || CheckWin(PLAYER2) || CheckDraw() )
         return false;
     return true;
+}
+
+
+// ChatGPT generated function
+/*
+"Could you give me a function that takes a column and a row 
+and returns an array of those dimensions but filled in with values of 
+Gaussian normal distribution centered around the mean position of board. 
+The one with more centered positions gets higher score
+*/
+std::array<std::array<float, 7>, 6> Board::GenerateBoardWithGaussianValues()
+{
+    std::array<std::array<float, 7>, 6> newBoard;
+
+    // Calculate the mean position of the board
+    int sum = 0;
+    int count = 0;
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 7; ++j) {
+            sum += i * j;
+            ++count;
+        }
+    }
+    float mean = static_cast<float>(sum) / count;
+
+    // Create a Gaussian distribution centered around the mean
+    std::normal_distribution<float> distribution(mean, 1.0);
+
+    // Fill the new board with values from the Gaussian distribution
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 7; ++j) {
+            newBoard[i][j] = distribution(generator);
+        }
+    }
+
+    return newBoard;
 }

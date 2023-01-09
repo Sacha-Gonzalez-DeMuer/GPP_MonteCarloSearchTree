@@ -82,17 +82,20 @@ private:
 	std::vector<int> GetCompletingCellsIndices(const Board& board, const Color4f& color, int piecesInARow) const;
 	
 	bool IsEmptyWitFullCellBelow(const Board& board, int row, int column) const;
-	std::pair<BoardPosition, BoardPosition> GetHorizontalRowStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const;
-	std::pair<BoardPosition, BoardPosition> GetVerticalRowStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const;
-	std::pair<BoardPosition, BoardPosition> GetDiagonalRowStartAndEnd(const Board& board, const Color4f& color, int piecesInARow, bool ascending) const;
+	std::pair<BoardPosition, BoardPosition> GetHorizontalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const;
+	std::pair<BoardPosition, BoardPosition> GetVerticalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const;
+	std::pair<BoardPosition, BoardPosition> GetDiagonalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow, bool ascending) const;
+	int GetLongestChain(const Board& board, const Color4f player, int& nrOfChains) const;
+
 
 	float CalculateUCB(const MCTSNode& node) const;
 	float EvaluatePosition(const Board& board, const Color4f& forPlayer, const Color4f& againstPlayer) const;
-	int GetNrHorizontalRows(const Board& board, const Color4f player, int piecesInARow) const;
-	int GetNrVerticalRows(const Board& board, const Color4f player, int piecesInARow) const;
-	int GetNrDiagonalRows(const Board& board, const Color4f player, int piecesInARow) const;
+	int GetNrHorizontalChains(const Board& board, const Color4f player, int piecesInARow) const;
+	int GetNrVerticalChains(const Board& board, const Color4f player, int piecesInARow) const;
+	int GetNrDiagonalChains(const Board& board, const Color4f player, int piecesInARow) const;
 
 	int m_NrIterations{ 100000 };
+
 
 	//tmp
 	Color4f myColor{ PLAYER2 };
@@ -110,4 +113,5 @@ https://pranav-agarwal-2109.medium.com/game-ai-learning-to-play-connect-4-using-
 https://towardsdatascience.com/monte-carlo-tree-search-an-introduction-503d8c04e168
 https://www.baeldung.com/java-monte-carlo-tree-search
 https://www.sciencedirect.com/science/article/pii/S0304397516302717#:~:text=Firstly%2C%20no%20evaluation%20function%20is,(evaluate)%20these%20different%20positions.
+https://softwareengineering.stackexchange.com/questions/263514/why-does-this-evaluation-function-work-in-a-connect-four-game-in-java
 */

@@ -157,33 +157,28 @@ Color4f MonteCarloTreeSearch::Simulate(MCTSNode* node)
 		bool has_moved{ false };
 		int rnd_move_idx{ -1 };
 
-
-		// Check if self has a winning move and play it
-		const auto& winning_connect4_moves{ GetCompletingCellsIndices(state_copy, current_player, 4) };
-		rnd_move_idx = utils::GetRandomInt(static_cast<int>(winning_connect4_moves.size()));
-		if (!winning_connect4_moves.empty()
-			&& state_copy.PlacePiece(winning_connect4_moves[rnd_move_idx], current_player))
-		{
-			has_moved = true;
-		}
-
-		// Check if opponent has winning move and counter it
-		if (!has_moved)
-		{
-			const auto& opponent_connect4_moves{ GetCompletingCellsIndices(state_copy, opponent_player, 4) };
-			rnd_move_idx = utils::GetRandomInt(static_cast<int>(opponent_connect4_moves.size()));
-			if (!opponent_connect4_moves.empty()
-				&& state_copy.PlacePiece(opponent_connect4_moves[rnd_move_idx], current_player))
-			{
-				has_moved = true;
-			}
-		}
-
 		// Play random move
 		if (!has_moved)
 		{
 			const auto available_actions{ state_copy.GetAvailableActions() };
-			state_copy.PlacePiece(available_actions[utils::GetRandomInt(static_cast<int>(available_actions.size()))], current_player);
+
+			float best_evaluation{ 0 };
+			int best_move{ available_actions[0] };
+
+			for (const auto& action : available_actions)
+			{
+				Board deep_copy{ state_copy };
+				if (deep_copy.PlacePiece(action, current_player))
+				{
+					float evaluation{ EvaluatePosition(deep_copy, current_player, opponent_player) };
+					if (evaluation > best_evaluation)
+					{
+						best_evaluation = evaluation;
+						best_move = action;
+					}
+				}
+			}
+			state_copy.PlacePiece(best_move, current_player);
 		}
 
 		if (state_copy.CheckWin(myColor))
@@ -241,7 +236,7 @@ std::vector<int> MonteCarloTreeSearch::GetCompletingCellsIndices(const Board& bo
 		// Check if can be completed (check if there's a piece below the needed position)
 
 		// Get the almost completed row
-		std::pair<BoardPosition, BoardPosition> horizontalRow{ GetHorizontalRowStartAndEnd(board, color, piecesInARow - 1) };
+		std::pair<BoardPosition, BoardPosition> horizontalRow{ GetHorizontalChainStartAndEnd(board, color, piecesInARow - 1) };
 
 		if (horizontalRow.first != INVALID_BOARD_POSITION || horizontalRow.second != INVALID_BOARD_POSITION)
 		{
@@ -262,7 +257,7 @@ std::vector<int> MonteCarloTreeSearch::GetCompletingCellsIndices(const Board& bo
 	if (board.CheckPiecesInAVerticalRow(color, piecesInARow-1))
 	{
 		// Get the almost completed row
-		std::pair<BoardPosition, BoardPosition> verticalRow{ GetVerticalRowStartAndEnd(board, color, piecesInARow - 1) };
+		std::pair<BoardPosition, BoardPosition> verticalRow{ GetVerticalChainStartAndEnd(board, color, piecesInARow - 1) };
 
 		if (verticalRow.first != INVALID_BOARD_POSITION || verticalRow.second != INVALID_BOARD_POSITION)
 		{
@@ -277,7 +272,7 @@ std::vector<int> MonteCarloTreeSearch::GetCompletingCellsIndices(const Board& bo
 
 	if (board.CheckPiecesInADiagonalRow(color, piecesInARow-1, true))
 	{
-		std::pair<BoardPosition, BoardPosition> diagonalRow{ GetDiagonalRowStartAndEnd(board, color, piecesInARow - 1, true) };
+		std::pair<BoardPosition, BoardPosition> diagonalRow{ GetDiagonalChainStartAndEnd(board, color, piecesInARow - 1, true) };
 
 		if (diagonalRow.first != INVALID_BOARD_POSITION || diagonalRow.second != INVALID_BOARD_POSITION)
 		{
@@ -298,7 +293,7 @@ std::vector<int> MonteCarloTreeSearch::GetCompletingCellsIndices(const Board& bo
 
 	if (board.CheckPiecesInADiagonalRow(color, piecesInARow-1, false))
 	{
-		std::pair<BoardPosition, BoardPosition> diagonalRow{ GetDiagonalRowStartAndEnd(board, color, piecesInARow - 1, false) };
+		std::pair<BoardPosition, BoardPosition> diagonalRow{ GetDiagonalChainStartAndEnd(board, color, piecesInARow - 1, false) };
 
 		if (diagonalRow.first != INVALID_BOARD_POSITION || diagonalRow.second != INVALID_BOARD_POSITION)
 		{
@@ -334,7 +329,7 @@ bool MonteCarloTreeSearch::IsEmptyWitFullCellBelow(const Board& board, int row, 
 	return false;
 }
 
-std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetHorizontalRowStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const
+std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetHorizontalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const
 {
 	BoardPosition startPos{ -1, -1 };
 	BoardPosition endPos{ -1,-1 };
@@ -366,7 +361,7 @@ std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetHorizontalRowSt
 	return std::pair<BoardPosition, BoardPosition>(INVALID_BOARD_POSITION, INVALID_BOARD_POSITION);
 }
 
-std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetVerticalRowStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const
+std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetVerticalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const
 {
 	BoardPosition startPos{ -1, -1 };
 	BoardPosition endPos{ -1,-1 };
@@ -400,7 +395,7 @@ std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetVerticalRowStar
 	return std::pair<BoardPosition, BoardPosition>(INVALID_BOARD_POSITION, INVALID_BOARD_POSITION);
 }
 
-std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetDiagonalRowStartAndEnd(const Board& board, const Color4f& color, int piecesInARow, bool ascending) const
+std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetDiagonalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow, bool ascending) const
 {
 	BoardPosition startPos{ -1, -1 };
 	BoardPosition endPos{ -1,-1 };
@@ -465,6 +460,75 @@ std::pair<BoardPosition, BoardPosition> MonteCarloTreeSearch::GetDiagonalRowStar
 	return std::pair<BoardPosition, BoardPosition>(INVALID_BOARD_POSITION, INVALID_BOARD_POSITION);
 }
 
+int MonteCarloTreeSearch::GetLongestChain(const Board& board, const Color4f player, int& nrOfChains) const
+{
+	// Find the longest chain each player has, and the amount of chains of that length they have
+	int longest_chain{ 0 };
+
+	nrOfChains = 0;
+
+	// Check longest horizontal chain
+	int highest_nr_horizontal_chains{ 0 };
+	for (int i{ 0 }; i < 4; ++i)
+	{
+		int nr_horizontal_chains{ GetNrHorizontalChains(board, player, i) };
+
+		if (nr_horizontal_chains > 0)
+		{
+			longest_chain = i;
+			highest_nr_horizontal_chains = nr_horizontal_chains;
+		}
+		else 
+		{
+			nrOfChains += highest_nr_horizontal_chains;
+		}
+	}
+
+	// Check if any vertical chain is bigger
+	int highest_nr_vertical_chains{ 0 };
+	for (int i{ longest_chain }; i < 4; ++i)
+	{
+		int nr_vertical_chains{ GetNrVerticalChains(board, player, i) };
+
+		if (nr_vertical_chains > 0)
+		{
+			longest_chain = i;
+			highest_nr_vertical_chains = nr_vertical_chains;
+		} 
+		else
+		{
+			// If chain is longer than previous, reset nr of chains, otherside add the amount of chains
+			if (i > longest_chain)
+				nrOfChains = highest_nr_vertical_chains;
+			else
+				nrOfChains += highest_nr_vertical_chains;
+		}
+	}
+
+	// Check if any diagonal chain is bigger
+	int highest_nr_diagonal_chains{ 0 };
+	for (int i{ longest_chain }; i < 4; ++i)
+	{
+		int nr_diagonal_chains{ GetNrDiagonalChains(board, player, i) };
+
+		if (nr_diagonal_chains > 0) 
+		{
+			longest_chain = i;
+			highest_nr_diagonal_chains = nr_diagonal_chains;
+		}
+		else
+		{
+			if (i > longest_chain)
+				nrOfChains = highest_nr_diagonal_chains;
+			else
+				nrOfChains += highest_nr_diagonal_chains;
+		}
+	}
+
+	return longest_chain;
+}
+
+
 float MonteCarloTreeSearch::CalculateUCB(const MCTSNode& node) const
 {
 	if (node.VisitCount == 0)
@@ -482,7 +546,6 @@ float MonteCarloTreeSearch::CalculateUCB(const MCTSNode& node) const
 
 float MonteCarloTreeSearch::EvaluatePosition(const Board& board, const Color4f& forPlayer, const Color4f& againstPlayer) const
 {
-	float eval{ 0 };
 	if (board.CheckWin(forPlayer))
 		return FLT_MAX;
 
@@ -492,34 +555,30 @@ float MonteCarloTreeSearch::EvaluatePosition(const Board& board, const Color4f& 
 	if (board.CheckDraw())
 		return 0;
 
-	/*	const auto& winning_connect4_moves{ GetCompletingCellsIndices(board, forPlayer, 4) };
-		const auto& losing_connect4_moves{ GetCompletingCellsIndices(board, againstPlayer, 4) };*/
+
+	float eval{ 0 };
+
+	// https://softwareengineering.stackexchange.com/a/299446
+	int forplayer_nrof_longestchain{ 0 };
+	int againstplayer_nrof_longestchain{ 0 };
+	eval += GetLongestChain(board, forPlayer, forplayer_nrof_longestchain) * forplayer_nrof_longestchain;
+	eval -= GetLongestChain(board, againstPlayer, againstplayer_nrof_longestchain) * againstplayer_nrof_longestchain;
 
 
-		//eval += winning_connect4_moves.size();
-		//eval -= losing_connect4_moves.size();
-
-	// Add value for each winning move and remove for each winning move that the opponent has
-	// Multiply by I to scale along with length of connection
-
-	for (int i{ 0 }; i < 4; ++i)
-	{
-		eval += GetNrVerticalRows(board, forPlayer, i);
-		eval -= GetNrVerticalRows(board, againstPlayer, i);
-
-		eval += GetNrHorizontalRows(board, forPlayer, i);
-		eval -= GetNrHorizontalRows(board, againstPlayer, i);
-
-		eval += GetNrDiagonalRows(board, forPlayer, i);
-		eval -= GetNrDiagonalRows(board, againstPlayer, i);
-
+	for (int row = 0; row < board.GetNrRows(); row++) {
+		for (int col = 0; col < board.GetNrColumns(); col++)
+		{
+			if (board.GetBoard()[row][col] == forPlayer)
+				eval += abs(3 - col);
+			else if (board.GetBoard()[row][col] == againstPlayer)
+				eval -= abs(3 - col);
+		}
 	}
-
 
 	return eval;
 }
 
-int MonteCarloTreeSearch::GetNrHorizontalRows(const Board& board, const Color4f player, int piecesInARow) const
+int MonteCarloTreeSearch::GetNrHorizontalChains(const Board& board, const Color4f player, int piecesInARow) const
 {
 	int nr{ 0 };
 	// Check if connected horizontally
@@ -542,7 +601,7 @@ int MonteCarloTreeSearch::GetNrHorizontalRows(const Board& board, const Color4f 
 	return nr;
 }
 
-int MonteCarloTreeSearch::GetNrVerticalRows(const Board& board, const Color4f player, int piecesInARow) const
+int MonteCarloTreeSearch::GetNrVerticalChains(const Board& board, const Color4f player, int piecesInARow) const
 {
 	int nr{ 0 };
 
@@ -568,7 +627,7 @@ int MonteCarloTreeSearch::GetNrVerticalRows(const Board& board, const Color4f pl
 	return nr;
 }
 
-int MonteCarloTreeSearch::GetNrDiagonalRows(const Board& board, const Color4f player, int piecesInARow) const
+int MonteCarloTreeSearch::GetNrDiagonalChains(const Board& board, const Color4f player, int piecesInARow) const
 {
 	int nr{ 0 };
 	// Check if connected diagonally (top-right to bottom-left)
@@ -614,4 +673,3 @@ int MonteCarloTreeSearch::GetNrDiagonalRows(const Board& board, const Color4f pl
 
 	return nr;
 }
-

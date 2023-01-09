@@ -43,12 +43,15 @@ public:
 	int GetNrRows() const { return m_NrRows; };
 	int GetNrColumns() const { return m_NrColumns; };
 	bool IsPlayer1Turn() const { return m_P1Turn; };
-
 	//MCTS Function => TODO: make base class for state objects
 	bool InProgress() const;
+
+	std::array<std::array<float, 7>, 6> GetEvaluationTable() const
+	{ return m_EvalTable;}
 private:
 	int m_LastMove;
 	bool m_P1Turn{ true };
+
 
 	// The number of pieces that have been placed on the board.
 	int m_NrPieces{0};
@@ -58,7 +61,11 @@ private:
 
 	// Corresponds to m_Board[rows][columns]
 	std::array<std::array<Color4f, 7>, 6> m_Board{};
+	std::array<std::array<float, 7>, 6> m_EvalTable{};
+
 	float m_CellSize{50.0f};
 
 	Color4f m_BoardColor{ 0.f, .5f, 1.0f, 1.0f };
+
+	std::array<std::array<float, 7>, 6> GenerateBoardWithGaussianValues();
 };
