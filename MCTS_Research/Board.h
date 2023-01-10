@@ -20,7 +20,6 @@ public:
 	// Getters
 	Rectf GetBoardRect() const { return m_BoardRect; };
 	float GetCellSize() const { return m_CellSize; };
-	std::array<std::array<char, 7>, 6> GetBoard() const { return m_Board; };
 
 private:
 	Rectf m_BoardRect;

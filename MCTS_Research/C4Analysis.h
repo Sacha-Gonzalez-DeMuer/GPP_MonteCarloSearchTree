@@ -182,8 +182,6 @@ struct C4_Analysis final : public StateAnalysis
 		return state.GetNrPieces() == state.GetNrColumns() * state.GetNrRows();
 	}
 
-
-
 	bool IsEmptyWitFullCellBelow(const GameState& state, int row, int column) const
 	{
 		//Check if cell is empty

@@ -9,7 +9,7 @@
 
 Game::Game( const Window& window ) 
 	: m_Window{ window }
-	, m_pPlayer1{new Player(PLAYER1, false, "Giuseppe")}
+	, m_pPlayer1{new Player(PLAYER1, true, "Giuseppe")}
 	, m_pPlayer2{new Player(PLAYER2, false, "Carlos")}
 	, m_pStateAnalysis{new C4_Analysis()}
 {

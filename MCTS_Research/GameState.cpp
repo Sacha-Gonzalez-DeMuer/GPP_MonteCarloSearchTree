@@ -48,18 +48,14 @@ void GameState::Initialize()
 void GameState::Reset()
 {
     m_P1Turn = true;
+    m_NrPieces = 0;
     m_LastMove = INVALID_INDEX;
-    for (int row = 0; row < GetNrRows(); ++row)
-    {
-        for (int col = 0; col < GetNrColumns(); ++col)
-        {
-            m_Board[row][col] = EMPTY;
-        }
-    }
+    Initialize();
 }
 
 bool GameState::PlacePiece(const int& column, const char& player)
 {
+    // Catch player on wrong turn
     if (m_P1Turn && player != m_Player1)
     {
         std::cerr << "NOT YOUR TURN!\n";
@@ -77,10 +73,17 @@ bool GameState::PlacePiece(const int& column, const char& player)
         --row;
     }
 
-    // Place the piece in the cell.
-    m_Board[row + 1][column] = player;
-    m_LastMove = column;
-    ++m_NrPieces;
-    m_P1Turn = !m_P1Turn;
-    return true;
+    if (row + 1 < GetNrRows() && row + 1 >= 0
+        && column < GetNrColumns() && column >= 0)
+    {
+        // Place the piece in the cell.
+        m_Board[row + 1][column] = player;
+        m_LastMove = column;
+        ++m_NrPieces;
+        m_P1Turn = !m_P1Turn;
+
+        return true;
+    }
+
+    return false;
 }

@@ -33,6 +33,8 @@ struct MCTSNode
 		Children = other.Children;
 		return *this;
 	}
+	MCTSNode& operator=(MCTSNode&& other) = delete;
+	MCTSNode(MCTSNode&& other) = delete;
 
 	// State of the game in this node
 	GameState State;
@@ -40,9 +42,7 @@ struct MCTSNode
 	UINT WinCount{ 0 };
 	MCTSNode* Parent{nullptr};
 	std::vector<MCTSNode*> Children{};
-	float Evaluation{ 0 };
 	bool IsLeaf() const { return Children.empty(); }
-	void AddChild() { Children.emplace_back(new MCTSNode()); };
 };
 
 
@@ -62,8 +62,6 @@ private:
 	void Expand(MCTSNode*& fromNode);
 	char Simulate(MCTSNode* node);
 	void BackPropagate(MCTSNode* fromNode, const char& winningPlayer);
-
-	MCTSNode* GetChildWhereMoveWasPlayed(MCTSNode* node, int move) const;
 
 	float CalculateUCB(const MCTSNode& node) const;
 	int m_NrIterations{ 10000 };

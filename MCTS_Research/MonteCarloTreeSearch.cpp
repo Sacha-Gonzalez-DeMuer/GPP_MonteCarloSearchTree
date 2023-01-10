@@ -31,16 +31,14 @@ MonteCarloTreeSearch::~MonteCarloTreeSearch()
 	
 }
 
-
 int MonteCarloTreeSearch::FindNextMove(const GameState& pBoard)
 {
 	m_RootNode = new MCTSNode(pBoard);
-	MCTSNode* root{ m_RootNode };
-	MCTSNode* promising_node{ root };
+	MCTSNode* promising_node{ };
 	for (int i = 0; i < m_NrIterations; i++)
 	{
 		// Select a node with highest Upper Confidence Boundary
-		promising_node = SelectNode(root);
+		promising_node = SelectNode(m_RootNode);
 
 		// If state of node isn't complete, make a new child node for all possible moves
 		if (m_pStateAnalysis->InProgress(promising_node->State))
@@ -52,14 +50,15 @@ int MonteCarloTreeSearch::FindNextMove(const GameState& pBoard)
 		{
 			int rnd_int{ utils::GetRandomInt(static_cast<int>(promising_node->Children.size())) };
 			node_to_explore = promising_node->Children[rnd_int];
-
 		}
 
+		// Simulate the game of that move until it finishes (win or draw)
+		// Then propagate the result to all the parent nodes
 		BackPropagate(node_to_explore, Simulate(node_to_explore));
 	}
 
 
-	//Find node with most wins? || UCB?
+	// Find node with most visits
 	MCTSNode* best_node{ nullptr };
 	for (const auto& child : m_RootNode->Children)
 	{
@@ -77,7 +76,6 @@ int MonteCarloTreeSearch::FindNextMove(const GameState& pBoard)
 	if (best_node)
 		move = best_node->State.GetLastMove();
 
-
 	delete m_RootNode;
 	m_RootNode = nullptr;
 
@@ -89,21 +87,16 @@ MCTSNode* MonteCarloTreeSearch::SelectNode(MCTSNode* fromNode)
 	//Start
 	MCTSNode* current_node{ fromNode };
 
+	if (!current_node)
+		return nullptr;
 
 	// Find leaf node with maximum win rate
 	while (!current_node->IsLeaf())
 	{
-		MCTSNode* highest_UCD_node{};
+		MCTSNode* highest_UCD_node{current_node->Children[0]};
 		// Find child node that maximises Upper Confidence Boundary
 		for (auto& child : current_node->Children)
 		{
-			// On first iteration set highest to first child node
-			if (!highest_UCD_node)
-			{
-				highest_UCD_node = child;
-				continue;
-			}
-
 			if (CalculateUCB(*child) > CalculateUCB(*highest_UCD_node))
 				highest_UCD_node = child;
 		}
@@ -148,50 +141,26 @@ and it simulates a randomized game from selected node until it reaches the resul
 //Simulate game on node randomly, returns winner color if there is one, empty color if draw
 char MonteCarloTreeSearch::Simulate(MCTSNode* node)
 {
-	char current_player{ };
-	char opponent_player{ };
+	// Create a copy to run the simulation on
 	GameState state_copy{ node->State };
 
-	// Loop forever
+	// Loop until game ends
 	while (true)
 	{
-		if (state_copy.IsPlayer1Turn())
+		// Play a random move
+		const auto available_actions{ m_pStateAnalysis->GetAvailableActions(state_copy) };
+		if (!available_actions.empty())
 		{
-			current_player = state_copy.GetP1Piece();
-			opponent_player = state_copy.GetP2Piece();
+			int rnd_idx{ utils::GetRandomInt(static_cast<int>(available_actions.size())) };
+			state_copy.PlacePiece(available_actions[rnd_idx], state_copy.GetCurrentPlayer());
 		}
-		else
-		{
-			current_player = state_copy.GetP2Piece();
-			opponent_player = state_copy.GetP1Piece();
-		}
+		
+		// Check if game is over and return the winner
+		if (m_pStateAnalysis->CheckWin(state_copy, state_copy.GetCurrentPlayer()))
+			return state_copy.GetCurrentPlayer();
 
-		bool has_moved{ false };
-		int rnd_move_idx{ -1 };
-
-		// Play random move
-		if (!has_moved)
-		{
-			const auto available_actions{ m_pStateAnalysis->GetAvailableActions(state_copy) };
-
-			if (available_actions.size() == 0)
-			{
-
-			}
-			else
-			{
-				int rnd_idx{ utils::GetRandomInt(static_cast<int>(available_actions.size())) };
-				state_copy.PlacePiece(available_actions[rnd_idx], current_player);
-			}
-			
-		}
-
-
-		if (m_pStateAnalysis->CheckWin(state_copy, state_copy.GetP1Piece()))
-			return state_copy.GetP1Piece();
-
-		if (m_pStateAnalysis->CheckWin(state_copy, state_copy.GetP2Piece()))
-			return state_copy.GetP2Piece();
+		if (m_pStateAnalysis->CheckWin(state_copy, state_copy.GetWaitingPlayer()))
+			return state_copy.GetWaitingPlayer();
 
 		if (m_pStateAnalysis->CheckDraw(state_copy))
 			return EMPTY;
@@ -210,39 +179,29 @@ void MonteCarloTreeSearch::BackPropagate(MCTSNode* fromNode, const char& winning
 	MCTSNode* current_node{ fromNode };
 	int reward{ 0 };
 
-	// Check if I won the simulation
-	if (fromNode->State.IsPlayerTurn(m_pPlayer->GetInitial()) && winningPlayer == m_pPlayer->GetInitial())
+	// Check if the AI won the simulation
+	if (!fromNode->State.IsPlayerTurn(m_pPlayer->GetInitial()) && winningPlayer == m_pPlayer->GetInitial())
 		reward = 1;
 
-
+	// While there is a parent node to visit
 	while (current_node != nullptr)
 	{
 		++current_node->VisitCount;
 
+		// If the AI won the simulation
 		if (winningPlayer == m_pPlayer->GetInitial())
 			current_node->WinCount += reward;
 
 		current_node = current_node->Parent;
 
+		// If the game ended in a tie, set the reward to 0
 		if (winningPlayer == EMPTY)
 			reward = 0;
+		// Otherwise, switch the reward between 1 and 0
 		else
 			reward = 1 - reward;
-	};
-}
-
-MCTSNode* MonteCarloTreeSearch::GetChildWhereMoveWasPlayed(MCTSNode* node, int move) const
-{
-	for (const auto& child : node->Children)
-	{
-		if (child->State.GetLastMove() == move)
-			return child;
 	}
-
-	return nullptr;
 }
-
-
 
 float MonteCarloTreeSearch::CalculateUCB(const MCTSNode& node) const
 {

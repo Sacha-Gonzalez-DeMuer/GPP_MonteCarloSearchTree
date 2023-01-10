@@ -70,7 +70,6 @@ void Player::ProcessMouseDownEvent(const SDL_MouseButtonEvent& e)
 
 void Player::Reset()
 {
-
 	delete m_pMCTS;
 	m_pMCTS = nullptr;
 
