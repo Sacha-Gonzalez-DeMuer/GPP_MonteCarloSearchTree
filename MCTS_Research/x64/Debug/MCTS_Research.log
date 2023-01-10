@@ -1,4 +1,9 @@
-﻿  MonteCarloTreeSearch.cpp
+﻿  Board.cpp
+  Game.cpp
+  GameState.cpp
+  MonteCarloTreeSearch.cpp
+  Player.cpp
+  Generating Code...
   MCTS_Research.vcxproj -> C:\Users\sacha\OneDrive\Documents\College\Howest\Gameplay-Programming\GPP_Exam\ResearchTopic\GPP_MonteCarloSearchTree\MCTS_Research\x64\Debug\MCTS_Research.exe
   COPY THE DLL FILES
   0 File(s) copied

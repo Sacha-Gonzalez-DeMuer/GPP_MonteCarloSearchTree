@@ -47,6 +47,12 @@
     <ClCompile Include="MonteCarloTreeSearch.cpp">
       <Filter>MCTS</Filter>
     </ClCompile>
+    <ClCompile Include="GameState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StateAnalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -75,6 +81,15 @@
     </ClInclude>
     <ClInclude Include="MonteCarloTreeSearch.h">
       <Filter>MCTS</Filter>
+    </ClInclude>
+    <ClInclude Include="GameState.h">
+      <Filter>Framework Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C4Analysis.h">
+      <Filter>Connect4</Filter>
+    </ClInclude>
+    <ClInclude Include="StateAnalysis.h">
+      <Filter>Framework Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

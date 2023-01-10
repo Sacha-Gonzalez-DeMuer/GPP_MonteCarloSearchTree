@@ -1,54 +1,47 @@
 #include "pch.h"
 #include "Board.h"
 #include <iostream>
-#include <random>
+#include "Player.h"
 
 Board::Board()
-    : m_CellSize{ 50.0f }
-    , m_NrRows{ static_cast<int>(m_Board.size()) }
-    , m_NrColumns{ static_cast<int>(m_Board[0].size()) }
+    : GameState(EMPTY, EMPTY)
+    , m_CellSize{ 50.0f }
     , m_BoardRect{  }
+    , m_pPlayer1{nullptr}
+    , m_pPlayer2{nullptr}
 {
-    m_BoardRect.width = m_NrColumns * m_CellSize;
-    m_BoardRect.height = m_NrRows * m_CellSize;
-    m_EvalTable = GenerateBoardWithGaussianValues();
+    m_BoardRect.width = GetNrColumns() * m_CellSize;
+    m_BoardRect.height = GetNrRows() * m_CellSize;
 }
+
+Board::Board(float cellSize, const Window& window, Player* player1, Player* player2)
+    : GameState(player1->GetInitial(), player2->GetInitial())
+    , m_CellSize{ cellSize }
+    , m_BoardRect{  }
+    , m_pPlayer1{ player1 }
+    , m_pPlayer2{ player2 }
+{
+    m_BoardRect.width = GetNrColumns() * m_CellSize;
+    m_BoardRect.height = GetNrRows() * m_CellSize;
+    m_BoardRect.left = window.width / 2.0f - m_BoardRect.width / 2.0f;
+    m_BoardRect.bottom = window.height / 2.0f - m_BoardRect.height / 2.0f;
+}
+
 
 Board::Board(const Board& other)
-    : m_NrPieces{other.m_NrPieces}
-    , m_NrRows{other.m_NrRows}
-    , m_NrColumns{other.m_NrColumns}
+    : GameState(other)
     , m_BoardRect{ other.m_BoardRect }
     , m_BoardColor{ other.m_BoardColor }
-    , m_LastMove{ other.m_LastMove }
-    , m_Board{other.m_Board}
     , m_CellSize{other.m_CellSize}
+    , m_pPlayer1{other.m_pPlayer1}
+    , m_pPlayer2{other.m_pPlayer2}
 {
 }
 
-Board& Board::operator=(const Board& other)
+Board::~Board()
 {
-  m_NrPieces = other.m_NrPieces;
-  m_NrRows = other.m_NrRows;
-  m_NrColumns = other.m_NrColumns;
-  m_BoardRect = other.m_BoardRect;
-  m_BoardColor = other.m_BoardColor;
-  m_LastMove = other.m_LastMove;
-  m_Board = other.m_Board;
-  m_CellSize = other.m_CellSize;
-  return *this;
-}
-
-Board::Board(float cellSize, const Window& window)
-    : m_CellSize{ cellSize }
-    , m_NrRows{static_cast<int>(m_Board.size())}
-    , m_NrColumns{static_cast<int>(m_Board[0].size())}
-    , m_BoardRect{  }
-{
-    m_BoardRect.width = m_NrColumns * m_CellSize;
-    m_BoardRect.height = m_NrRows * m_CellSize;
-    m_BoardRect.left = window.width / 2.0f - m_BoardRect.width /2.0f;
-    m_BoardRect.bottom = window.height / 2.0f - m_BoardRect.height / 2.0f;
+    m_pPlayer1 = nullptr;
+    m_pPlayer2 = nullptr;
 }
 
 void Board::Render() const
@@ -56,17 +49,32 @@ void Board::Render() const
     utils::SetColor(m_BoardColor);
     utils::FillRect(GetBoardRect());
 
+    Color4f piece_color{};
     float circle_size{ m_CellSize * .5f };
     // Fix the position of the ellipse for the first row.
     Ellipsef cell{ GetBoardRect().left + circle_size,
                    GetBoardRect().bottom + circle_size,
                    m_CellSize * .5f,
                    m_CellSize * .5f };
-    for (int row = 0; row < m_NrRows; ++row)
+    for (int row = 0; row < GetNrRows(); ++row)
     {
-        for (int col = 0; col < m_NrColumns; ++col)
+        for (int col = 0; col < GetNrColumns(); ++col)
         {
-            utils::SetColor(m_Board[row][col]);
+            // Use color of correct players piece
+            char cell_occupation{ m_Board[row][col] };
+
+            if (cell_occupation == m_pPlayer1->GetInitial())
+                piece_color = m_pPlayer1->GetColor();
+            else if (cell_occupation == m_pPlayer2->GetInitial())
+                piece_color = m_pPlayer2->GetColor();
+            else if (cell_occupation == EMPTY)
+                piece_color = Color4f{ 0,0,0,1 };
+            else
+            {
+                std::cerr << "invalid cell occupation\n";
+            }
+
+            utils::SetColor(piece_color);
             utils::FillEllipse(cell);
             cell.center.x += m_CellSize;
         }
@@ -76,220 +84,4 @@ void Board::Render() const
     }
 }
 
-bool Board::PlacePiece(int column, const Color4f& color) 
-{
-    // Check if the column is full.
-    if (m_Board[m_NrRows-1][column] != EMPTY) {
-        return false;
-    }
 
-    // Find the lowest empty cell in the column.
-    int row = 5;
-    while (row >= 0 && m_Board[row][column] == EMPTY) {
-        --row;
-    }
-
-    // Place the piece in the cell.
-    m_Board[row + 1][column] = color;
-    m_LastMove = column;
-    ++m_NrPieces;
-    m_P1Turn = !m_P1Turn;
-    return true;
-}
-
-
-bool Board::CheckWin(const Color4f& color) const
-{
-    return CheckPiecesInARow(color, 4);
-}
-
-bool Board::CheckDraw() const
-{
-	return m_NrPieces == 42;
-}
-
-bool Board::CheckPiecesInAHorizontalRow(const Color4f& color, int piecesInARow) const
-{
-    // Check if connected horizontally
-    for (int row = 0; row < m_NrRows; row++) {
-        for (int col = 0; col < m_NrColumns - piecesInARow + 1; col++) 
-        {
-            bool connected{ true };
-            for (int i = 0; i < piecesInARow; i++) {
-                if (m_Board[row][col + i] != color) {
-                    connected = false;
-                    break;
-                }
-            }
-
-            if (connected)
-                return true;
-        }
-    }
-
-    return false;
-}
-
-bool Board::CheckPiecesInAVerticalRow(const Color4f color, int piecesInARow) const
-{
-    // Check if connected vertically
-    for (int row = 0; row < m_NrRows - piecesInARow + 1; row++) {
-        for (int col = 0; col < m_NrColumns; col++) 
-        {
-            bool connected{ true };
-            for (int i = 0; i < piecesInARow; i++) 
-            {
-                if (m_Board[row + i][col] != color) 
-                {
-                    connected = false;
-                    break;
-                }
-            }
-
-            if (connected)
-                return true;
-        }
-    }
-
-    return false;
-}
-
-bool Board::CheckPiecesInADiagonalRow(const Color4f color, int piecesInARow, bool ascending) const
-{
-    if (ascending)
-    {
-        // Check if connected diagonally (top-right to bottom-left)
-        for (int row = 0; row < m_NrRows - piecesInARow + 1; row++) {
-            for (int col = 0; col < m_NrColumns - piecesInARow + 1; col++) 
-            {
-                bool connected{ true };
-
-                for (int i = 0; i < piecesInARow; i++) 
-                {
-                    if (m_Board[row + i][col + i] != color) 
-                    {
-                        connected = false;
-                        break;
-                    }
-                }
-
-                if (connected)
-                    return true;
-            }
-        }
-    }
-    else
-    {
-        // Check if connected diagonally (top-right to bottom-left)
-        for (int row = 0; row < m_NrRows - piecesInARow + 1; row++) {
-            for (int col = piecesInARow - 1; col < m_NrColumns; col++) 
-            {
-                bool connected{ true };
-
-                for (int i = 0; i < piecesInARow; i++) 
-                {
-                    if (m_Board[row + i][col - i] != color) 
-                    {
-                        connected = false;
-                        break;
-                    }
-                }
-
-                if (connected)
-                    return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool Board::CheckPiecesInARow(const Color4f& color, int piecesInARow) const
-{
-    // Check if connected horizontally
-    if (CheckPiecesInAHorizontalRow(color, piecesInARow))
-        return true;
-
-    if (CheckPiecesInAVerticalRow(color, piecesInARow))
-        return true;
-
-    if (CheckPiecesInADiagonalRow(color, piecesInARow, false))
-        return true;
-
-     if (CheckPiecesInADiagonalRow(color, piecesInARow, true))
-         return true;
-
-    return false;
-}
-
-void Board::Reset()
-{
-    for (int row = 0; row < m_NrRows; ++row)
-    {
-        for (int col = 0; col < m_NrColumns; ++col)
-        {
-            m_Board[row][col] = EMPTY;
-        }
-    }
-}
-
-
-std::vector<int> Board::GetAvailableActions()
-{
-    std::vector<int> availableActions{};
-
-    for (int col = 0; col < m_NrColumns; ++col)
-    {
-        // Check if the column is empty.
-        if (m_Board[m_NrRows-1][col] == EMPTY)
-        {
-            availableActions.push_back(col);
-        }
-    }
-   
-    return availableActions;
-}
-
-bool Board::InProgress() const
-{
-    if(CheckWin(PLAYER1) || CheckWin(PLAYER2) || CheckDraw() )
-        return false;
-    return true;
-}
-
-
-// ChatGPT generated function
-/*
-"Could you give me a function that takes a column and a row 
-and returns an array of those dimensions but filled in with values of 
-Gaussian normal distribution centered around the mean position of board. 
-The one with more centered positions gets higher score
-*/
-std::array<std::array<float, 7>, 6> Board::GenerateBoardWithGaussianValues()
-{
-    std::array<std::array<float, 7>, 6> newBoard;
-
-    // Calculate the mean position of the board
-    int sum = 0;
-    int count = 0;
-    for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 7; ++j) {
-            sum += i * j;
-            ++count;
-        }
-    }
-    float mean = static_cast<float>(sum) / count;
-
-    // Create a Gaussian distribution centered around the mean
-    std::normal_distribution<float> distribution(mean, 1.0);
-
-    // Fill the new board with values from the Gaussian distribution
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 7; ++j) {
-            newBoard[i][j] = distribution(generator);
-        }
-    }
-
-    return newBoard;
-}

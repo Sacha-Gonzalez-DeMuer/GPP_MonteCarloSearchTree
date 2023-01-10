@@ -3,6 +3,8 @@
 
 class Player;
 class Board;
+struct StateAnalysis;
+
 class Game final
 {
 public:
@@ -34,8 +36,9 @@ private:
 	void ResetGame();
 
 	Board* m_pBoard;
-	std::shared_ptr<Player> m_pPlayer1;
-	std::shared_ptr<Player> m_pPlayer2;
+	StateAnalysis* m_pStateAnalysis;
+	Player* m_pPlayer1;
+	Player* m_pPlayer2;
 
 	bool m_FirstPlayerTurn{ true };
 	bool m_GameFinished{ false };

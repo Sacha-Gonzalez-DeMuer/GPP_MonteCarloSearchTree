@@ -4,13 +4,16 @@
 #include "Board.h"
 #include "Player.h"
 #include <iostream>
+#include "MonteCarloTreeSearch.h"
+#include "C4Analysis.h"
 
 Game::Game( const Window& window ) 
 	: m_Window{ window }
-	, m_pBoard{  new Board(50.0f, window) }
-	, m_pPlayer1{std::make_unique<Player>(PLAYER1, true, "Giuseppe")}
-	, m_pPlayer2{std::make_unique<Player>(PLAYER2, false, "Carlos")}
+	, m_pPlayer1{new Player(PLAYER1, false, "Giuseppe")}
+	, m_pPlayer2{new Player(PLAYER2, false, "Carlos")}
+	, m_pStateAnalysis{new C4_Analysis()}
 {
+	m_pBoard = new Board(50.0f, window, m_pPlayer1, m_pPlayer2);
 	Initialize( );
 }
 
@@ -28,28 +31,33 @@ void Game::Cleanup( )
 {
 	delete m_pBoard;
 	m_pBoard = nullptr;
+
+	delete m_pPlayer1;
+	delete m_pPlayer2;
+	m_pPlayer1 = nullptr;
+	m_pPlayer2 = nullptr;
 }
 
 void Game::Update(float elapsedSec)
 {
-	std::shared_ptr<Player> current_player{ m_FirstPlayerTurn ? m_pPlayer1 : m_pPlayer2 };
+	Player* current_player{ m_FirstPlayerTurn ? m_pPlayer1 : m_pPlayer2 };
 	int move{};
 	if (!m_GameFinished && current_player->GetMove(*m_pBoard, move))
 	{
-		if (!m_pBoard->PlacePiece(move, current_player->GetColor()))
+		if (!m_pBoard->PlacePiece(move, current_player->GetInitial()))
 		{
 			std::cout << "Column full\n";
 			return;
 		}
 
-		if (m_pBoard->CheckWin(current_player->GetColor()))
+		if (m_pStateAnalysis->CheckWin(*m_pBoard, current_player->GetInitial()))
 		{
 			std::cout << current_player->GetName() << " wins!\n";
 			m_GameFinished = true;
 			return;
 		}
 
-		if (m_pBoard->CheckDraw())
+		if (m_pStateAnalysis->CheckDraw(*m_pBoard))
 		{
 			std::cout << "Draw!\n";
 			return;
@@ -68,7 +76,6 @@ void Game::Draw( ) const
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
 {
-	//std::cout << "KEYDOWN event: " << e.keysym.sym << std::endl;
 	switch (e.keysym.sym)
 	{
 	case SDLK_r:
@@ -79,25 +86,10 @@ void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
 
 void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 {
-	//std::cout << "KEYUP event: " << e.keysym.sym << std::endl;
-	//switch ( e.keysym.sym )
-	//{
-	//case SDLK_LEFT:
-	//	//std::cout << "Left arrow key released\n";
-	//	break;
-	//case SDLK_RIGHT:
-	//	//std::cout << "`Right arrow key released\n";
-	//	break;
-	//case SDLK_1:
-	//case SDLK_KP_1:
-	//	//std::cout << "Key 1 released\n";
-	//	break;
-	//}
 }
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
 {
-	//std::cout << "MOUSEMOTION event: " << e.x << ", " << e.y << std::endl;
 }
 
 void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
@@ -113,19 +105,7 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 
 void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 {
-	//std::cout << "MOUSEBUTTONUP event: ";
-	//switch ( e.button )
-	//{
-	//case SDL_BUTTON_LEFT:
-	//	std::cout << " left button " << std::endl;
-	//	break;
-	//case SDL_BUTTON_RIGHT:
-	//	std::cout << " right button " << std::endl;
-	//	break;
-	//case SDL_BUTTON_MIDDLE:
-	//	std::cout << " middle button " << std::endl;
-	//	break;
-	//}
+	
 }
 
 void Game::ClearBackground( ) const
@@ -138,4 +118,7 @@ void Game::ResetGame()
 {
 	m_pBoard->Reset();
 	m_GameFinished = false;
+	m_FirstPlayerTurn = true;
+	m_pPlayer1->Reset();
+	m_pPlayer2->Reset();
 }

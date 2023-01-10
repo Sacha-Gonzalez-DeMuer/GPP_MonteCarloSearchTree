@@ -32,3 +32,8 @@
 *.app
 *.db
 *.opendb
+*.zip
+
+# Folders
+MCTS_Research/.vs/
+

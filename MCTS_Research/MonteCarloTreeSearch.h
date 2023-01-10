@@ -2,21 +2,19 @@
 #include <array>
 #include <memory>
 #include "Board.h"
-// Forward declarations
 
+struct Chain;
+struct StateAnalysis;
 
-
-
-//TODO: make class
 struct MCTSNode
 {
 	MCTSNode() {};
 
-	MCTSNode(const Board& state)
+	MCTSNode(const GameState& state)
 		: State(state) {};
 
 	MCTSNode(const MCTSNode& other)
-		: WinCount(other.WinCount), VisitCount(other.VisitCount), Children(other.Children), Parent(other.Parent) {};
+		: WinCount(other.WinCount), VisitCount(other.VisitCount), Children(other.Children), Parent(other.Parent), State(other.State) {};
 
 	~MCTSNode()
 	{
@@ -37,71 +35,42 @@ struct MCTSNode
 	}
 
 	// State of the game in this node
-	Board State;
+	GameState State;
 	UINT VisitCount{ 0 };
 	UINT WinCount{ 0 };
 	MCTSNode* Parent{nullptr};
 	std::vector<MCTSNode*> Children{};
-
+	float Evaluation{ 0 };
 	bool IsLeaf() const { return Children.empty(); }
 	void AddChild() { Children.emplace_back(new MCTSNode()); };
 };
 
-struct BoardPosition
-{
-	int row;
-	int column;
-
-	friend bool operator==(const BoardPosition& lhs, const BoardPosition& rhs)
-	{
-		return (lhs.row == rhs.row && lhs.column == rhs.column);
-	}
-
-};
 
 
 
 class MonteCarloTreeSearch final
 {
 public:
-	MonteCarloTreeSearch();
+	MonteCarloTreeSearch(Player* player);
 	~MonteCarloTreeSearch();
-	int FindNextMove(const Board& pBoard);
-
-
+	int FindNextMove(const GameState& pBoard);
 private:
 
 	MCTSNode* m_RootNode;
 
 	MCTSNode* SelectNode(MCTSNode* fromNode);
 	void Expand(MCTSNode*& fromNode);
-	Color4f Simulate(MCTSNode* node);
-	void BackPropagate(MCTSNode* fromNode, Color4f winningPlayer);
+	char Simulate(MCTSNode* node);
+	void BackPropagate(MCTSNode* fromNode, const char& winningPlayer);
 
-	//AI 
-	std::vector<int> GetCompletingCellsIndices(const Board& board, const Color4f& color, int piecesInARow) const;
-	
-	bool IsEmptyWitFullCellBelow(const Board& board, int row, int column) const;
-	std::pair<BoardPosition, BoardPosition> GetHorizontalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const;
-	std::pair<BoardPosition, BoardPosition> GetVerticalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow) const;
-	std::pair<BoardPosition, BoardPosition> GetDiagonalChainStartAndEnd(const Board& board, const Color4f& color, int piecesInARow, bool ascending) const;
-	int GetLongestChain(const Board& board, const Color4f player, int& nrOfChains) const;
-
+	MCTSNode* GetChildWhereMoveWasPlayed(MCTSNode* node, int move) const;
 
 	float CalculateUCB(const MCTSNode& node) const;
-	float EvaluatePosition(const Board& board, const Color4f& forPlayer, const Color4f& againstPlayer) const;
-	int GetNrHorizontalChains(const Board& board, const Color4f player, int piecesInARow) const;
-	int GetNrVerticalChains(const Board& board, const Color4f player, int piecesInARow) const;
-	int GetNrDiagonalChains(const Board& board, const Color4f player, int piecesInARow) const;
+	int m_NrIterations{ 10000 };
 
-	int m_NrIterations{ 100000 };
-
-
-	//tmp
-	Color4f myColor{ PLAYER2 };
+	Player* m_pPlayer;
+	StateAnalysis* m_pStateAnalysis;
 };
-
-
 
 
 /*

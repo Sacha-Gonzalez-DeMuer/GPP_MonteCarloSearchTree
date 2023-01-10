@@ -14,12 +14,12 @@ public:
 	std::string GetName() { return m_Name; };
 	bool IsHuman() const { return m_IsHuman; };
 
-
 	// Gets the player's next move.
 	bool GetMove(const Board& pBoard, int& i);
-
 	void ProcessMouseDownEvent(const SDL_MouseButtonEvent& e);
-
+	MonteCarloTreeSearch* GetMCTS() const { return m_pMCTS; };
+	void Reset();
+	char GetInitial() const { return m_Name[0]; };
 private:
 	std::string m_Name;
 	Color4f m_Color;

@@ -8,7 +8,7 @@ Player::Player(const Color4f& color, bool isHuman, const std::string& name)
 	: m_Color{ color }
 	, m_IsHuman{ isHuman }
 	, m_Name{ name }
-	, m_pMCTS{ new MonteCarloTreeSearch() }
+	, m_pMCTS{ new MonteCarloTreeSearch(this) }
 {
 }
 
@@ -66,4 +66,14 @@ void Player::ProcessMouseDownEvent(const SDL_MouseButtonEvent& e)
 
 			break;
 	}
+}
+
+void Player::Reset()
+{
+
+	delete m_pMCTS;
+	m_pMCTS = nullptr;
+
+	m_pMCTS = new MonteCarloTreeSearch(this);
+	m_WaitingForMove = false;
 }
