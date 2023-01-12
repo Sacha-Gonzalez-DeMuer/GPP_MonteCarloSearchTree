@@ -8,6 +8,8 @@ public:
 	GameState(char player1, char player2);
 	GameState(const GameState& other);
 	GameState& operator=(const GameState& other);
+	GameState(GameState&& other) = delete;
+	GameState& operator=(GameState&& other) = delete;
 
 	void Initialize();
 	void Reset();
@@ -26,6 +28,7 @@ public:
 	bool IsPlayerTurn(const char& player) { return (m_P1Turn && player == m_Player1); };
 	char GetCurrentPlayer() const { if (m_P1Turn) return m_Player1; else return m_Player2; };
 	char GetWaitingPlayer() const { if (!m_P1Turn) return m_Player2; else return m_Player1; };
+
 protected:
 	std::array<std::array<char, 7>, 6> m_Board{};
 	int m_LastMove{ INVALID_INDEX };

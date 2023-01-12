@@ -3,7 +3,6 @@
 #include <memory>
 #include "Board.h"
 
-struct Chain;
 struct StateAnalysis;
 
 struct MCTSNode

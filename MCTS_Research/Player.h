@@ -11,11 +11,12 @@ public:
 	~Player();
 
 	Color4f GetColor() const { return m_Color; };
-	std::string GetName() { return m_Name; };
+	std::string GetName() const { return m_Name; };
 	bool IsHuman() const { return m_IsHuman; };
 
-	// Gets the player's next move.
+	// Gets the player's next move. (Input if human, otherwise MCTS)
 	bool GetMove(const Board& pBoard, int& i);
+
 	void ProcessMouseDownEvent(const SDL_MouseButtonEvent& e);
 	MonteCarloTreeSearch* GetMCTS() const { return m_pMCTS; };
 	void Reset();
@@ -27,7 +28,6 @@ private:
 
 	bool m_WaitingForMove{ false };
 	Vector2f m_ClickPos{INVALID_POSITION};
-
 
 	MonteCarloTreeSearch* m_pMCTS;
 };

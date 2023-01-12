@@ -1,9 +1,11 @@
-﻿  Game.cpp
+﻿  Board.cpp
+  Core.cpp
+  Game.cpp
   MonteCarloTreeSearch.cpp
   Player.cpp
   Generating code
   Previous IPDB and IOBJ mismatch, fall back to full compilation.
-  All 367 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 370 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   MCTS_Research.vcxproj -> C:\Users\sacha\OneDrive\Documents\College\Howest\Gameplay-Programming\GPP_Exam\ResearchTopic\GPP_MonteCarloSearchTree\MCTS_Research\x64\Release\MCTS_Research.exe
   COPY THE DLL FILES

@@ -59,27 +59,17 @@ int MonteCarloTreeSearch::FindNextMove(const GameState& pBoard)
 
 
 	// Find node with most visits
-	MCTSNode* best_node{ nullptr };
+	MCTSNode* best_node{ m_RootNode->Children[0]};
 	for (const auto& child : m_RootNode->Children)
 	{
-		if (!best_node)
-		{
-			best_node = child;
-			continue;
-		}
-
 		if (child->VisitCount > best_node->VisitCount)
 			best_node = child;
 	}
 
-	int move{ -1 };
-	if (best_node)
-		move = best_node->State.GetLastMove();
-
 	delete m_RootNode;
 	m_RootNode = nullptr;
 
-	return move;
+	return best_node->State.GetLastMove();
 }
 
 MCTSNode* MonteCarloTreeSearch::SelectNode(MCTSNode* fromNode)
