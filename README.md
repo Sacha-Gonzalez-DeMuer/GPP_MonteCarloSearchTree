@@ -16,7 +16,7 @@ MCTS comprises of two core concepts which is suggested in its name:
 ### Monte Carlo Simulations
 A Monte Carlo simulation is a statistical method that uses the idea of random sampling together with the law of large numbers to find a numerical solution to a problem that would be otherwise difficult or impossible to solve analytically.
 
-There are 2 main things to take away from this summary which I will go into detail in next:
+There are 2 main things to take away from this summary which I will go into detail in the next part:
 
 1. **The Law of Large Numbers:**
 
@@ -24,16 +24,16 @@ There are 2 main things to take away from this summary which I will go into deta
 
 	This means that given a large enough sample size, we can come close to the expected real value. 
 	For example: to find the true average height of men in a country, we can sample the height of every man in that country, 
-	but by measuring the height of a large amount of men we can come *close* to the *true average* height of men in that country.
+	but by measuring the height of a large number of men we can come *close* to the *true average* height of men in that country.
 
 2. **Random Sampling**
 
 	To feed into the law of large numbers Monte Carlo simulations use random sampling to simulate the behavior of a model.
 
-By combining these two ideas Monte Carlo simulations are able to find an approximation of an optimal result.
+By combining these two ideas Monte Carlo simulations can find an approximation of an optimal result.
 
 In the case of deterministic games like connect 4 the optimal result we're searching for is a win.  
-Therefore we can use Monte Carlo simulations to determine wether a move is the optimal move to win by repeatedly simulating a large amount of games after that move until the game finishes.
+Therefore we can use Monte Carlo simulations to determine whether a move is the optimal move to win by repeatedly simulating a large number of games after that move until the game finishes.
 
 ### Game Trees
 However games like these aren't determined by a single move, but rather a sequence of moves where every move creates a new state for the game, branching off into extremely large amounts of different possibilities. 
@@ -46,10 +46,10 @@ This is achieved using a simple algorithm on which MCTS leans, the Upper Confide
 
 * **Upper Confidence Boundary Algorithm**
  	
-	UCB is used to determine wether a certain state will have a favorable outcome.
+	UCB is used to determine whether a certain state will have a favorable outcome.
 	It achieves this by balancing the concepts of "Exploitation" and "Exploration". 
 	
-	Exploitation is represented by a ratio between the amount of visits at that node to the amount of wins simulated starting from that state.
+	Exploitation is represented by a ratio between the number of visits at that node to the number of wins simulated starting from that state.
 	
 	Exploration makes use of the root node to understand how many times a particular node has been explored compared to the rest of the tree
 	it is usually scaled along with an "Exploration factor" which can be adjusted to make the tree lean towards unexplored states.
@@ -74,7 +74,7 @@ float MonteCarloTreeSearch::CalculateUCB(const MCTSNode& node) const
 }
 ```
 
-Where Root.VisitCount is the total amount of simulations across the tree.
+Where Root.VisitCount is the total number of simulations across the tree.
 
 ## Stages of MCTS
 Now that we understand the core algorithm of MCTS we can explore the steps needed to build and navigate our game tree.
@@ -85,7 +85,7 @@ This can be a time limit or a set number of iterations. I have opted for a fixed
 
 ### 1. Selection
 
-During selection MCTS will make use of a UCB in order to find a gamestate where the move played has a high chance of winning.
+During selection MCTS will make use of UCB to find a gamestate where the move played has a high chance of winning.
 We navigate the tree starting at the root by selecting the child with the highest calculated UCB and continuing to do so until we reach a leaf node
 (a node with no more children)
 	
@@ -101,7 +101,7 @@ MCTSNode* MonteCarloTreeSearch::SelectNode(MCTSNode* fromNode)
 
 	// Find leaf node
 	while (!current_node->IsLeaf())
-	{
+	{F
 		MCTSNode* highest_UCB_node{current_node->Children[0]};
 		float highest_UCB{ CalculateUCB(*highest_UCB_node) };
 
@@ -199,7 +199,7 @@ char MonteCarloTreeSearch::Simulate(MCTSNode* node)
 When our simulation is done running we propagate the result back up the tree until we reach the root node.
 We increment the win and visit counter of every node along the way. Which will be used by UCB on the next iteration.
 
-During backpropagation it is imporant to only increment the win counter on nodes where it is our turn to play, 
+During backpropagation it is important to only increment the win counter on nodes where it is our turn to play, 
 since we want to explore nodes that are winning for us and not for the opponent. 
 If we were to increment the win counter for the opponent's wins too, 
 the algorithm will be inclined to take actions that lead to these opponent's turn states, which are not beneficial to our agent.
@@ -237,8 +237,8 @@ void MonteCarloTreeSearch::BackPropagate(MCTSNode* fromNode, const char& winning
 ```
 
 ### Choosing the best move
-Once we've gone through all our iterations the children of our root node, each representing a move to play, will have a large win and visit count.
-Choosing which move to play is easy. Since UCB will explore nodes with a higher win chance more often than losing ones, we choose the child with the most visits.
+Once we've gone through all our iterations the children of our root node each of whichs represents a move, will have a large win and visit count.
+Choosing which move to play is easy. Since UCB will explore nodes with a higher win chance more often than the losing ones, we choose the child with the most visits.
 
 ```cpp
 // Find node with most visits
@@ -254,14 +254,14 @@ return best_node->State.GetLastMove();
 
 ## Possibilities for expansion
 ### Evaluation Function
-There are many ways to improve a Monte Carlo Search tree, a popular approach which is also used for well known chess or Go engines is to use an evaluation function.
+There are many ways to improve a Monte Carlo Search tree. A popular approach which is also used for well known chess or Go engines is to use an evaluation function.
 
 This evaluation function can be used at different stages of the tree search, however it is imporant to note that this approach can have a negative impact on MCTS, as evaluating a position can be performance intensive. 
 
-During my tests I found that I found that whatever evaluation function I wrote, the payoff in strength was outweight by the loss in performance.
-Additionaly, since the evaluation functions I chose to test weren't fully accurate, using an evaluation function resulted in less consitent results regarding the strength of the AI.
+During my tests I found that I found that whatever evaluation function I wrote, the payoff in strength was outweighed by the loss in performance.
+Additionally, since the evaluation functions I chose to test weren't fully accurate, using an evaluation function resulted in less consistent results regarding the strength of the AI.
 
-But before showing you the different possibilties for a connect 4 evaluation function let me show you where you could use such a function.
+But before showing you the different possibilities for a connect 4 evaluation function, let me show you where you could use such a function.
 
 
 * Upper Confidence Boundary
@@ -317,15 +317,14 @@ if (!has_moved)
 	state_copy.PlacePiece(best_move, current_player);
 }
 ```
-Although this approach resulted in a relatively strong AI, it still slipped up more than using a pure Monte Carlo approach. Additionaly, the impact on performance was noticable compared to pure randomness.
+Although this approach resulted in a relatively strong AI, it still slipped up more than using a pure Monte Carlo approach. Additionaly, the impact on performance was noticeable compared to pure randomness.
 
 ### Evaluation functions for Connect 4
 
-As mentioned earlier evaluation functions are popular in game AI for complex games like chess and Go where machine learning models are used to evaluate a position. These models have learned from tons of games and can evaluate the position without exact rules in place. 
-However it is possible to write an evaluation function by hand.
+As mentioned earlier, evaluation functions are popular in game AI for complex games like chess and Go, where machine learning models are used to evaluate a position. These models have learned from tons of games and can evaluate the position without exact rules in place. 
+However, it is possible to write an evaluation function by hand.
 
-In the case of connect 4 this can be really simple, and I tested a couple different approaches. Before diving into that let me show you the outline of the evaluation function, the approaches I will be listing all calculate the evaluation of the position.
-
+In the case of connect 4 this can be really simple, and I tested a couple different approaches. Before diving into that, let me show you the outline of the evaluation function. After that I will show you different approaches to compute an evaluation for the given position. 
 ```cpp
 virtual float StateAnalysis::EvaluatePosition(const GameState& state, const char& forPlayer, const char& againstPlayer) const override
 {
@@ -364,7 +363,7 @@ static constexpr std::array<std::array<float, 7>, 6> EvalTable
 	{3, 4, 5, 7, 5, 4, 3}
 }};
 ```
-This table represents every cell of a connect 4 board. Where its value is the amount of lines that can be made using that cell. A cell with more possibilities for connections inheritely means these cells have a higher value. By checking which player posseses a certain node we can weigh our evaluation. This evaluation function is one of the fastest approaches since it requires relatively little calculations.
+This table represents every cell of a connect 4 board. Where its value is the number of lines that can be made using that cell. A cell with more possibilities for connections inheritably means these cells have a higher value. By checking which player possesses a certain node we can weigh our evaluation. This evaluation function is one of the fastest approaches since it requires relatively little calculations.
 
 ```cpp
 for (int row = 0; row < state.GetNrRows(); row++) 
@@ -379,8 +378,8 @@ for (int row = 0; row < state.GetNrRows(); row++)
 }
 ```
 
-* **[Longest line](https://softwareengineering.stackexchange.com/a/299446), scaled by amount of lines of this length**
-A different approach is to find the longest line for each player, I chose to scale this result by the amount of lines that there are of this length in an attempt to get a more accurate evaluation.
+* **[Longest line](https://softwareengineering.stackexchange.com/a/299446), scaled by number of lines of this length**
+A different approach is to find the longest line for each player, I chose to scale this result by the number of lines that there are of this length to get a more accurate evaluation.
 This approach proved to be extremely computationally expensive, as the entire board needs to be scanned for horizontal, vertical and diagonal lines (+ diagonals require checks in two directions) **+** this needs to happen for both players to correctly weigh the evaluation.
 Below is the snippet which does the calculation in the evaluation function using analysis methods which can be found in [C4_Analysis.h](https://github.com/SachaGDM/GPP_MonteCarloSearchTree/blob/main/MCTS_Research/C4Analysis.h)
 
@@ -398,10 +397,10 @@ eval += GetNrChains(state, forPlayer, 4) * 10 + GetNrChains(state, forPlayer, 3)
 ```
 
 # Conclusion/Future work
-MCTS is a powerful tool to create game-playing AI for both perfect and imperfect information games. For a simple (and solved) game like connect 4 the base implementation of MCTS seems to work optimally, as an evaluation function doesn't give the algorithm any information that it can't get by running a random simulation guided by UCB. However for more complex systems/games like chess, where possibilities are extremely wider I can see evaluation functions greatly improving the performance of the model, both in the computational and competitive aspect.
+MCTS is a powerful tool to create game-playing AI for both perfect and imperfect information games. For a simple (and solved) game like connect 4 the base implementation of MCTS seems to work optimally, as an evaluation function doesn't give the algorithm any information that it can't get by running a random simulation guided by UCB. However, for more complex systems/games like chess, where possibilities are extremely wide, I can see evaluation functions greatly improving the performance of the model, both in the computational and competitive aspect.
 
-Originally I had planned on researching the usage of MCTS for chess, after realizing it'd a better step to start small I opted for Connect 4 instead. 
-Implementing this has only peaked my interest in the topic. Since I'm an avid chess player I'd love to someday implement my own chess engine and explore the possibilities to improve and optimize a MCTS beyond its basic implementation.
+Originally I had planned on researching the usage of MCTS for chess, after realizing it would be a better step to start small, I opted for Connect 4 instead. 
+Implementing this has only peaked my interest in the topic. Since I'm an avid chess player, I'd love to someday implement my own chess engine and explore the possibilities to improve and optimize a MCTS beyond its basic implementation.
 
 # Sources
 
