@@ -6,28 +6,34 @@
 #include <iostream>
 #include "MonteCarloTreeSearch.h"
 #include "C4Analysis.h"
+#include "Texture.h"
 
-Game::Game( const Window& window ) 
+Game::Game(const Window& window)
 	: m_Window{ window }
-	, m_pPlayer1{new Player(PLAYER1, true, "Giuseppe")}
-	, m_pPlayer2{new Player(PLAYER2, false, "Carlos")}
-	, m_pStateAnalysis{new C4_Analysis()}
+	, m_pPlayer1{ new Player(PLAYER1, true, "Sacha") }
+	, m_pPlayer2{ new Player(PLAYER2, false, "Carlos") }
+	, m_pStateAnalysis{ new C4_Analysis() }
+	, m_pPlayer1TurnTxt{ new Texture(m_pPlayer1->GetName() + "'s turn", "Resources/crux.ttf", 40, PLAYER1) }
+	, m_pPlayer2TurnTxt{ new Texture(m_pPlayer2->GetName() + "' turn",  "Resources/crux.ttf", 40, PLAYER2) }
+	, m_pPlayer1WinTxt{ new Texture(m_pPlayer1->GetName() + " wins!",  "Resources/crux.ttf", 40, PLAYER1) }
+	, m_pPlayer2WinTxt{ new Texture(m_pPlayer2->GetName() + " wins!",  "Resources/crux.ttf", 40, PLAYER2) }
+
 {
 	m_pBoard = new Board(50.0f, window, m_pPlayer1, m_pPlayer2);
-	Initialize( );
+	Initialize();
 }
 
-Game::~Game( )
+Game::~Game()
 {
-	Cleanup( );
+	Cleanup();
 }
 
-void Game::Initialize( )
+void Game::Initialize()
 {
-	
+
 }
 
-void Game::Cleanup( )
+void Game::Cleanup()
 {
 	delete m_pBoard;
 	m_pBoard = nullptr;
@@ -36,6 +42,15 @@ void Game::Cleanup( )
 	delete m_pPlayer2;
 	m_pPlayer1 = nullptr;
 	m_pPlayer2 = nullptr;
+
+	delete m_pPlayer1TurnTxt;
+	delete m_pPlayer2TurnTxt;
+	delete m_pPlayer1WinTxt;
+	delete m_pPlayer2WinTxt;
+	m_pPlayer1TurnTxt = nullptr;
+	m_pPlayer2TurnTxt = nullptr;
+	m_pPlayer1WinTxt = nullptr;
+	m_pPlayer2WinTxt = nullptr;
 }
 
 void Game::Update(float elapsedSec)
@@ -67,14 +82,44 @@ void Game::Update(float elapsedSec)
 	}
 }
 
-void Game::Draw( ) const
+void Game::Draw() const
 {
-	ClearBackground( );
+	ClearBackground();
 
+	Rectf dst_rect{  };
+	Point2f text_pos{ m_Window.width / 2, 20 };
+	if (m_FirstPlayerTurn && !m_GameFinished)
+	{
+		dst_rect.width = m_pPlayer1TurnTxt->GetWidth();
+		dst_rect.height = m_pPlayer1TurnTxt->GetHeight();
+		text_pos.x -= dst_rect.width / 2;
+		m_pPlayer1TurnTxt->Draw(text_pos, dst_rect);
+	}
+	else if (!m_FirstPlayerTurn && !m_GameFinished)
+	{
+		dst_rect.width = m_pPlayer2TurnTxt->GetWidth();
+		dst_rect.height = m_pPlayer2TurnTxt->GetHeight();
+		text_pos.x -= dst_rect.width / 2;
+		m_pPlayer2TurnTxt->Draw(text_pos, dst_rect);
+	}
+	else if (m_FirstPlayerTurn && m_GameFinished)
+	{
+		dst_rect.width = m_pPlayer1WinTxt->GetWidth();
+		dst_rect.height = m_pPlayer1WinTxt->GetHeight();
+		text_pos.x -= dst_rect.width / 2;
+		m_pPlayer1WinTxt->Draw(text_pos, dst_rect);
+	}
+	else if (!m_FirstPlayerTurn && m_GameFinished)
+	{
+		dst_rect.width = m_pPlayer2WinTxt->GetWidth();
+		dst_rect.height = m_pPlayer2WinTxt->GetHeight();
+		text_pos.x -= dst_rect.width / 2;
+		m_pPlayer2WinTxt->Draw(text_pos, dst_rect);
+	}
 	m_pBoard->Render();
 }
 
-void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
+void Game::ProcessKeyDownEvent(const SDL_KeyboardEvent& e)
 {
 	switch (e.keysym.sym)
 	{
@@ -84,17 +129,17 @@ void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
 	}
 }
 
-void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
+void Game::ProcessKeyUpEvent(const SDL_KeyboardEvent& e)
 {
 }
 
-void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
+void Game::ProcessMouseMotionEvent(const SDL_MouseMotionEvent& e)
 {
 }
 
-void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
+void Game::ProcessMouseDownEvent(const SDL_MouseButtonEvent& e)
 {
-	if(m_FirstPlayerTurn)
+	if (m_FirstPlayerTurn)
 		m_pPlayer1->ProcessMouseDownEvent(e);
 	else
 		m_pPlayer2->ProcessMouseDownEvent(e);
@@ -103,15 +148,15 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 		ResetGame();
 }
 
-void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
+void Game::ProcessMouseUpEvent(const SDL_MouseButtonEvent& e)
 {
-	
+
 }
 
-void Game::ClearBackground( ) const
+void Game::ClearBackground() const
 {
-	glClearColor( 0.0f, 0.0f, 0.3f, 1.0f );
-	glClear( GL_COLOR_BUFFER_BIT );
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Game::ResetGame()

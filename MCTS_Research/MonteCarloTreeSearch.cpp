@@ -8,7 +8,7 @@
 
 MonteCarloTreeSearch::MonteCarloTreeSearch(Player* player)
 	: m_RootNode{ new MCTSNode() }
-	, m_pPlayer{player}
+	, m_pPlayer{ player }
 	, m_pStateAnalysis{ new C4_Analysis() }
 {
 }
@@ -28,7 +28,7 @@ MonteCarloTreeSearch::~MonteCarloTreeSearch()
 		delete m_RootNode;
 		m_RootNode = nullptr;
 	}
-	
+
 }
 
 int MonteCarloTreeSearch::FindNextMove(const GameState& pBoard)
@@ -59,7 +59,7 @@ int MonteCarloTreeSearch::FindNextMove(const GameState& pBoard)
 
 
 	// Find node with most visits
-	MCTSNode* best_node{ m_RootNode->Children[0]};
+	MCTSNode* best_node{ m_RootNode->Children[0] };
 	for (const auto& child : m_RootNode->Children)
 	{
 		if (child->VisitCount > best_node->VisitCount)
@@ -83,7 +83,7 @@ MCTSNode* MonteCarloTreeSearch::SelectNode(MCTSNode* fromNode)
 	// Find leaf node
 	while (!current_node->IsLeaf())
 	{
-		MCTSNode* highest_UCB_node{current_node->Children[0]};
+		MCTSNode* highest_UCB_node{ current_node->Children[0] };
 		float highest_UCB{ CalculateUCB(*highest_UCB_node) };
 
 		// Find child node that maximises Upper Confidence Boundary
@@ -115,7 +115,7 @@ void MonteCarloTreeSearch::Expand(MCTSNode*& fromNode)
 		GameState new_state{ fromNode->State };
 
 		// Play the available action
-		new_state.PlacePiece(action, new_state.IsPlayer1Turn() 
+		new_state.PlacePiece(action, new_state.IsPlayer1Turn()
 			? new_state.GetP1Piece() : new_state.GetP2Piece());
 
 		// Create new child node
@@ -150,7 +150,7 @@ char MonteCarloTreeSearch::Simulate(MCTSNode* node)
 			int rnd_idx{ utils::GetRandomInt(static_cast<int>(available_actions.size())) };
 			state_copy.PlacePiece(available_actions[rnd_idx], state_copy.GetCurrentPlayer());
 		}
-		
+
 		// Check if game is over and return the winner
 		if (m_pStateAnalysis->CheckWin(state_copy, state_copy.GetCurrentPlayer()))
 			return state_copy.GetCurrentPlayer();

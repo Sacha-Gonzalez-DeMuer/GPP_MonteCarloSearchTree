@@ -35,5 +35,5 @@
 *.zip
 
 # Folders
-MCTS_Research/.vs/
-MCTS_Research/x64/
+MCTS_Research\.vs\
+MCTS_Research\x64\

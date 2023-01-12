@@ -3,6 +3,7 @@
 
 class Player;
 class Board;
+class Texture;
 struct StateAnalysis;
 
 class Game final
@@ -39,6 +40,11 @@ private:
 	StateAnalysis* m_pStateAnalysis;
 	Player* m_pPlayer1;
 	Player* m_pPlayer2;
+
+	Texture* m_pPlayer1TurnTxt;
+	Texture* m_pPlayer2TurnTxt;
+	Texture* m_pPlayer1WinTxt;
+	Texture* m_pPlayer2WinTxt;
 
 	bool m_FirstPlayerTurn{ true };
 	bool m_GameFinished{ false };

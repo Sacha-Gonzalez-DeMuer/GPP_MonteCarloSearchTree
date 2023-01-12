@@ -44,9 +44,6 @@ struct MCTSNode
 	bool IsLeaf() const { return Children.empty(); }
 };
 
-
-
-
 class MonteCarloTreeSearch final
 {
 public:

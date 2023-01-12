@@ -50,6 +50,9 @@
     <ClCompile Include="GameState.cpp">
       <Filter>MCTS</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -87,6 +90,9 @@
     </ClInclude>
     <ClInclude Include="GameState.h">
       <Filter>MCTS</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Framework Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
