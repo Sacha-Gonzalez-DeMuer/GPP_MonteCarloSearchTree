@@ -80,18 +80,24 @@ MCTSNode* MonteCarloTreeSearch::SelectNode(MCTSNode* fromNode)
 	if (!current_node)
 		return nullptr;
 
-	// Find leaf node with maximum win rate
+	// Find leaf node
 	while (!current_node->IsLeaf())
 	{
-		MCTSNode* highest_UCD_node{current_node->Children[0]};
+		MCTSNode* highest_UCB_node{current_node->Children[0]};
+		float highest_UCB{ CalculateUCB(*highest_UCB_node) };
+
 		// Find child node that maximises Upper Confidence Boundary
 		for (auto& child : current_node->Children)
 		{
-			if (CalculateUCB(*child) > CalculateUCB(*highest_UCD_node))
-				highest_UCD_node = child;
+			float child_UCB{ CalculateUCB(*child) };
+			if (child_UCB > highest_UCB)
+			{
+				highest_UCB = child_UCB;
+				highest_UCB_node = child;
+			}
 		}
 
-		current_node = highest_UCD_node;
+		current_node = highest_UCB_node;
 	}
 
 	return current_node;

@@ -28,7 +28,7 @@ public:
 	bool IsPlayerTurn(const char& player) { return (m_P1Turn && player == m_Player1); };
 	char GetCurrentPlayer() const { if (m_P1Turn) return m_Player1; else return m_Player2; };
 	char GetWaitingPlayer() const { if (!m_P1Turn) return m_Player2; else return m_Player1; };
-
+	char GetOpponentPiece(const char& myPiece) { if (myPiece == m_Player1) return m_Player1; else return m_Player2; };
 protected:
 	std::array<std::array<char, 7>, 6> m_Board{};
 	int m_LastMove{ INVALID_INDEX };

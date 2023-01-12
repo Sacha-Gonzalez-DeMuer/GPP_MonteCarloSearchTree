@@ -721,8 +721,8 @@ struct C4_Analysis final : public StateAnalysis
 		// https://softwareengineering.stackexchange.com/a/299446
 		int forplayer_nrof_longestchain{ 0 };
 		int againstplayer_nrof_longestchain{ 0 };
-		eval += GetLongestChain(state, forPlayer, forplayer_nrof_longestchain) * 5;
-		eval -= GetLongestChain(state, againstPlayer, againstplayer_nrof_longestchain) * 5;
+		eval += GetLongestChain(state, forPlayer, forplayer_nrof_longestchain) * forplayer_nrof_longestchain;
+		eval -= GetLongestChain(state, againstPlayer, againstplayer_nrof_longestchain) * againstplayer_nrof_longestchain;
 
 
 

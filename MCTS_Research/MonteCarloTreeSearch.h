@@ -54,7 +54,6 @@ public:
 	~MonteCarloTreeSearch();
 	int FindNextMove(const GameState& pBoard);
 private:
-
 	MCTSNode* m_RootNode;
 
 	MCTSNode* SelectNode(MCTSNode* fromNode);
