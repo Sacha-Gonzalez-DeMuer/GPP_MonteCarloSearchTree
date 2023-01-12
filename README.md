@@ -7,7 +7,11 @@ However, due to the complexity of chess, I opted to implement MCTS for Connect 4
 Written in C++ using an SDL framework provided by our lecturers.
 
 ## Introduction
-MCTS is a tree search algorithm commonly used in game-playing AI. Particularly in games where players need to predict moves that should be taken to win the game such as chess, poker, connect4, etc.
+MCTS is a tree search algorithm commonly used in game-playing AI. Particularly in games where players need to predict moves that should be taken to win the game such as chess, poker, connect4, etc. For this project we will be exploring its usage for a game of connect 4.
+
+### MCTS vs Human demo
+![](https://github.com/SachaGDM/GPP_MonteCarloSearchTree/blob/main/MCTS_Research/Resources/demo_MCTS_vs_MCTS.gif)
+
 
 MCTS comprises of two core concepts which is suggested in its name:
 * Monte Carlo Simulations
@@ -82,6 +86,8 @@ We will need to go through 4 stages in a loop: Selection, Expansion, Simulation 
 
 We will loop through these stages until we come to a stop with a limit that we choose.
 This can be a time limit or a set number of iterations. I have opted for a fixed amount of iterations to get a better feeling of my trees performance.
+
+![](https://spl.hevs.io/spl-docs/_images/mcts.png)
 
 ### 1. Selection
 
@@ -412,6 +418,7 @@ Implementing this has only peaked my interest in the topic. Since I'm an avid ch
 * [Monte Carlo Tree Search for Tic-Tac-Toe Game in Java](https://www.baeldung.com/java-monte-carlo-tree-search)
 * [Using evaluation functions in Monte-Carlo Tree Search](https://www.sciencedirect.com/science/article/pii/S0304397516302717#:~:text=Firstly%2C%20no%20evaluation%20function%20is,(evaluate)%20these%20different%20positions.)
 * [Why does this evaluation function work in a connect four game in java](https://softwareengineering.stackexchange.com/questions/263514/why-does-this-evaluation-function-work-in-a-connect-four-game-in-java)
+* [Four stages of MCTS](https://spl.hevs.io/spl-docs/computerscience/algorithms/mcts.html)
 
 # Contact
 Gonzalez De Muer Sacha — [gonzalezdemuer.sacha@hotmail.com](mailto:gonzalezdemuer.sacha@hotmail.com)
