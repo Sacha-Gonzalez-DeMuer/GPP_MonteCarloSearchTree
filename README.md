@@ -1,8 +1,8 @@
 # <div align="center">Monte Carlo Tree Search for Connect 4</div>
 ## About this project
 This is a research project for [Gameplay Programming](https://www.digitalartsandentertainment.be/page/49/Gameplay+programming) at [HowestDAE](https://www.digitalartsandentertainment.be/).
-The goal of this project is to better understand how player AI engines like a chess engine work.
-However due to the complexity of chess I opted to implement MCTS for Connect 4 instead.
+The goal of this project is to better understand how 'player AI engines' like a chess engine works.
+However, due to the complexity of chess, I opted to implement MCTS for Connect 4 instead.
 
 Written in C++ using an SDL framework provided by our lecturers.
 
@@ -14,9 +14,9 @@ MCTS comprises of two core concepts which is suggested in its name:
 * Trees (In our case specifically Game Trees)
 
 ### Monte Carlo Simulations
-A Monte Carlo simulation is a statistical method that uses the idea of random sampling together with the law of large numbers to find a numerical solution to a problem that would be otherwise difficult or impossible to solve analytically.
+A Monte Carlo simulation is a statistical method that uses the idea of random sampling together with the law of large numbers, to find a numerical solution to a problem that would be otherwise difficult or impossible to solve analytically.
 
-There are 2 main things to take away from this summary which I will go into detail in the next part:
+There are 2 main things to take away from this summary, which I will go into detail in the next part:
 
 1. **The Law of Large Numbers:**
 
@@ -24,19 +24,19 @@ There are 2 main things to take away from this summary which I will go into deta
 
 	This means that given a large enough sample size, we can come close to the expected real value. 
 	For example: to find the true average height of men in a country, we can sample the height of every man in that country, 
-	but by measuring the height of a large number of men we can come *close* to the *true average* height of men in that country.
+	but by measuring the height of a large number of men, we can come *close* to the *true average* height of men in that country.
 
 2. **Random Sampling**
 
-	To feed into the law of large numbers Monte Carlo simulations use random sampling to simulate the behavior of a model.
+	To feed into the law of large numbers, Monte Carlo simulations use random sampling to simulate the behavior of a model.
 
 By combining these two ideas Monte Carlo simulations can find an approximation of an optimal result.
 
-In the case of deterministic games like connect 4 the optimal result we're searching for is a win.  
+In the case of deterministic games like connect 4, the optimal result we're searching for is a win.  
 Therefore we can use Monte Carlo simulations to determine whether a move is the optimal move to win by repeatedly simulating a large number of games after that move until the game finishes.
 
 ### Game Trees
-However games like these aren't determined by a single move, but rather a sequence of moves where every move creates a new state for the game, branching off into extremely large amounts of different possibilities. 
+However, games like these aren't determined by a single move, but rather a sequence of moves where every move creates a new state for the game, branching off into extremely large amounts of different possibilities. 
 
 This presents a problem for Monte Carlo simulations, as we can't run a full simulation for every single possible state.
 
