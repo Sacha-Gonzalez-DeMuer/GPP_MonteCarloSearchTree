@@ -352,7 +352,7 @@ virtual float StateAnalysis::EvaluatePosition(const GameState& state, const char
 ```
 
 ### Approaches
-* **[Evaluation Table](https://softwareengineering.stackexchange.com/q/263514))**
+* **[Evaluation Table](https://softwareengineering.stackexchange.com/q/263514)**
 ```cpp
 static constexpr std::array<std::array<float, 7>, 6> EvalTable
 {{
