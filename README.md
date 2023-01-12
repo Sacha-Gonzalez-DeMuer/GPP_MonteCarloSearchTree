@@ -1,6 +1,6 @@
 # <div align="center">Monte Carlo Tree Search for Connect 4</div>
 ## About this project
-This is a research project for Gameplay Programming 1 at HowestDAE.
+This is a research project for [Gameplay Programming](https://www.digitalartsandentertainment.be/page/49/Gameplay+programming) at [HowestDAE](https://www.digitalartsandentertainment.be/).
 The goal of this project is to better understand how player AI engines like a chess engine work.
 However due to the complexity of chess I opted to implement MCTS for Connect 4 instead.
 
@@ -99,20 +99,26 @@ MCTSNode* MonteCarloTreeSearch::SelectNode(MCTSNode* fromNode)
 	if (!current_node)
 		return nullptr;
 
-	// Find leaf node with maximum win rate
+	// Find leaf node
 	while (!current_node->IsLeaf())
 	{
-		MCTSNode* highest_UCD_node{current_node->Children[0]};
+		MCTSNode* highest_UCB_node{current_node->Children[0]};
+		float highest_UCB{ CalculateUCB(*highest_UCB_node) };
+
 		// Find child node that maximises Upper Confidence Boundary
 		for (auto& child : current_node->Children)
 		{
-			if (CalculateUCB(*child) > CalculateUCB(*highest_UCD_node))
-				highest_UCD_node = child;
+			float child_UCB{ CalculateUCB(*child) };
+			if (child_UCB > highest_UCB)
+			{
+				highest_UCB = child_UCB;
+				highest_UCB_node = child;
+			}
 		}
 
-		current_node = highest_UCD_node;
+		current_node = highest_UCB_node;
 	}
-
+	
 	return current_node;
 }
 ```
@@ -246,3 +252,167 @@ for (const auto& child : m_RootNode->Children)
 return best_node->State.GetLastMove();
 ```
 
+## Possibilities for expansion
+### Evaluation Function
+There are many ways to improve a Monte Carlo Search tree, a popular approach which is also used for well known chess or Go engines is to use an evaluation function.
+
+This evaluation function can be used at different stages of the tree search, however it is imporant to note that this approach can have a negative impact on MCTS, as evaluating a position can be performance intensive. 
+
+During my tests I found that I found that whatever evaluation function I wrote, the payoff in strength was outweight by the loss in performance.
+Additionaly, since the evaluation functions I chose to test weren't fully accurate, using an evaluation function resulted in less consitent results regarding the strength of the AI.
+
+But before showing you the different possibilties for a connect 4 evaluation function let me show you where you could use such a function.
+
+
+* Upper Confidence Boundary
+	Since UCB is used to find promising nodes it is only natural that we can incorporate an additional term to our calculation for our evaluation function.
+```cpp
+float MonteCarloTreeSearch::CalculateUCB(const MCTSNode& node) const
+{
+	if (node.VisitCount == 0)
+		return FLT_MAX;
+
+	float UCB{ 0 };
+	// Calculate Exploitation
+	UCB += static_cast<float>(node.WinCount) / static_cast<float>(node.VisitCount);
+
+	// Calculate Exploration
+	UCB += 2 * sqrtf(static_cast<float>(m_RootNode->VisitCount) / static_cast<float>(node.VisitCount)); 
+	
+	// Evaluation term
+	UCB += EvaluatePosition(node->State, m_pPlayer.GetInitial(), node->State.GetOpponentPiece(m_pPlayer.GetInitial())); // initials are used as pieces internally
+	return UCB;
+}
+```
+
+* Selection stage
+	Another approach is to completely replace the UCB function by the evaluation function during selection stage. Since an evaluation stage represents the same idea as UCB, without the need to create and run down a tree. However I wasn't successful in using this approach to make a strong enough AI to consider this approach a success. This is likely due to the inaccuracy of the evaluation functions I used.
+
+* Simulation stage
+	We can rework the simulation stage to pick a move which will result in a state with the highest evaluation, rather than choosing a fully random move.
+	For this we need to create a deep copy on which to perform every possible action and evaluate the position of the deep copy. 
+```cpp
+if (!has_moved)
+{
+	const auto available_actions{ state_copy.GetAvailableActions() };
+
+	float best_evaluation{ 0 };
+	int best_move{ available_actions[0] };
+
+	for (const auto& action : available_actions)
+	{
+		// Create a deep copy to evaluate every action on
+		Board deep_copy{ state_copy };
+		if (deep_copy.PlacePiece(action, current_player))
+		{
+			float evaluation{ EvaluatePosition(deep_copy, current_player, opponent_player) };
+			if (evaluation > best_evaluation)
+			{
+				best_evaluation = evaluation;
+				best_move = action;
+			}
+		}
+	}
+	// Play the move with the best resulting evaluation
+	state_copy.PlacePiece(best_move, current_player);
+}
+```
+Although this approach resulted in a relatively strong AI, it still slipped up more than using a pure Monte Carlo approach. Additionaly, the impact on performance was noticable compared to pure randomness.
+
+### Evaluation functions for Connect 4
+
+As mentioned earlier evaluation functions are popular in game AI for complex games like chess and Go where machine learning models are used to evaluate a position. These models have learned from tons of games and can evaluate the position without exact rules in place. 
+However it is possible to write an evaluation function by hand.
+
+In the case of connect 4 this can be really simple, and I tested a couple different approaches. Before diving into that let me show you the outline of the evaluation function, the approaches I will be listing all calculate the evaluation of the position.
+
+```cpp
+virtual float StateAnalysis::EvaluatePosition(const GameState& state, const char& forPlayer, const char& againstPlayer) const override
+{
+	// Return max/infinite evaluation for a win
+	if (CheckWin(state, forPlayer))
+		return FLT_MAX;
+		
+	// The opposite for a loss
+	if (CheckWin(state, againstPlayer))
+		return FLT_MIN;
+		
+	// Equal position or draw = 0
+	if (CheckDraw(state))
+		return 0;
+
+
+	float eval{ 0 };
+	
+	// Perform calculations to evaluate position
+	// ...
+	
+	return eval;
+}
+```
+
+### Approaches
+* **[Evaluation Table](https://softwareengineering.stackexchange.com/q/263514))**
+```cpp
+static constexpr std::array<std::array<float, 7>, 6> EvalTable
+{{
+	{3, 4, 5, 7, 5, 4, 3},
+	{4, 6, 8, 10, 8, 6, 4},
+	{5, 8, 11, 13, 11, 8, 5},
+	{5, 8, 11, 13, 11, 8, 5},
+	{4, 6, 8, 10, 8, 6, 4},
+	{3, 4, 5, 7, 5, 4, 3}
+}};
+```
+This table represents every cell of a connect 4 board. Where its value is the amount of lines that can be made using that cell. A cell with more possibilities for connections inheritely means these cells have a higher value. By checking which player posseses a certain node we can weigh our evaluation. This evaluation function is one of the fastest approaches since it requires relatively little calculations.
+
+```cpp
+for (int row = 0; row < state.GetNrRows(); row++) 
+{
+	for (int col = 0; col < state.GetNrColumns(); col++)
+	{
+		if (state.GetBoard()[row][col] == forPlayer)
+			eval += EvalTable[row][col];
+		else if (state.GetBoard()[row][col] == againstPlayer)
+			eval -= EvalTable[row][col];
+	}
+}
+```
+
+* **[Longest line](https://softwareengineering.stackexchange.com/a/299446), scaled by amount of lines of this length**
+A different approach is to find the longest line for each player, I chose to scale this result by the amount of lines that there are of this length in an attempt to get a more accurate evaluation.
+This approach proved to be extremely computationally expensive, as the entire board needs to be scanned for horizontal, vertical and diagonal lines (+ diagonals require checks in two directions) **+** this needs to happen for both players to correctly weigh the evaluation.
+Below is the snippet which does the calculation in the evaluation function using analysis methods which can be found in [C4_Analysis.h](https://github.com/SachaGDM/GPP_MonteCarloSearchTree/blob/main/MCTS_Research/C4Analysis.h)
+
+```cpp
+int forplayer_nrof_longestchain{ 0 };
+int againstplayer_nrof_longestchain{ 0 };
+eval += GetLongestChain(state, forPlayer, forplayer_nrof_longestchain) * forplayer_nrof_longestchain;
+eval -= GetLongestChain(state, againstPlayer, againstplayer_nrof_longestchain) * againstplayer_nrof_longestchain;
+```
+* **[Valued chains](https://github.com/prakhar10/Connect4/blob/master/eval_explanation.txt)**
+This approach runs into the same problem as finding the longest line, since it goes off of the same principle. The difference here is that we assign a value to each length of a chain, similar to how chess pieces each have their own value. In this example a connect 4 would be 10 points, connect 3 is half of that, connect 2 is half of that.
+```cpp
+eval += GetNrChains(state, forPlayer, 4) * 10 + GetNrChains(state, forPlayer, 3) * 5 + GetNrChains(state, forPlayer, 2) * 2;
+		eval -= GetNrChains(state, againstPlayer, 4) * 10 + GetNrChains(state, againstPlayer, 3) * 5 + GetNrChains(state, againstPlayer, 2) * 2;
+```
+
+# Conclusion/Future work
+MCTS is a powerful tool to create game-playing AI for both perfect and imperfect information games. For a simple (and solved) game like connect 4 the base implementation of MCTS seems to work optimally, as an evaluation function doesn't give the algorithm any information that it can't get by running a random simulation guided by UCB. However for more complex systems/games like chess, where possibilities are extremely wider I can see evaluation functions greatly improving the performance of the model, both in the computational and competitive aspect.
+
+Originally I had planned on researching the usage of MCTS for chess, after realizing it'd a better step to start small I opted for Connect 4 instead. 
+Implementing this has only peaked my interest in the topic. Since I'm an avid chess player I'd love to someday implement my own chess engine and explore the possibilities to improve and optimize a MCTS beyond its basic implementation.
+
+# Sources
+
+* [Monte Carlo Tree Search by John Levine](https://youtu.be/UXW2yZndl7U)
+* [Advanced 4. Monte Carlo Tree Search by MIT OpenCourseWare](https://youtu.be/xmImNoDc9Z4)
+* [Tic Tac Toe at the Monte Carlo](https://medium.com/swlh/tic-tac-toe-at-the-monte-carlo-a5e0394c7bc2)
+* [Game AI: Learning to play Connect 4 using Monte Carlo Tree Search](https://pranav-agarwal-2109.medium.com/game-ai-learning-to-play-connect-4-using-monte-carlo-tree-search-f083d7da451e)
+* [Monte Carlo Tree Search: An Introduction](https://towardsdatascience.com/monte-carlo-tree-search-an-introduction-503d8c04e168)
+* [Monte Carlo Tree Search for Tic-Tac-Toe Game in Java](https://www.baeldung.com/java-monte-carlo-tree-search)
+* [Using evaluation functions in Monte-Carlo Tree Search](https://www.sciencedirect.com/science/article/pii/S0304397516302717#:~:text=Firstly%2C%20no%20evaluation%20function%20is,(evaluate)%20these%20different%20positions.)
+* [Why does this evaluation function work in a connect four game in java](https://softwareengineering.stackexchange.com/questions/263514/why-does-this-evaluation-function-work-in-a-connect-four-game-in-java)
+
+# Contact
+Gonzalez De Muer Sacha — [gonzalezdemuer.sacha@hotmail.com](mailto:gonzalezdemuer.sacha@hotmail.com)
