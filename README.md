@@ -292,9 +292,11 @@ float MonteCarloTreeSearch::CalculateUCB(const MCTSNode& node) const
 ```
 
 * Selection stage
+	
 	Another approach is to completely replace the UCB function by the evaluation function during selection stage. Since an evaluation stage represents the same idea as UCB, without the need to create and run down a tree. However I wasn't successful in using this approach to make a strong enough AI to consider this approach a success. This is likely due to the inaccuracy of the evaluation functions I used.
 
 * Simulation stage
+	
 	We can rework the simulation stage to pick a move which will result in a state with the highest evaluation, rather than choosing a fully random move.
 	For this we need to create a deep copy on which to perform every possible action and evaluate the position of the deep copy. 
 ```cpp
@@ -385,6 +387,7 @@ for (int row = 0; row < state.GetNrRows(); row++)
 ```
 
 * **[Longest line](https://softwareengineering.stackexchange.com/a/299446), scaled by number of lines of this length**
+
 A different approach is to find the longest line for each player, I chose to scale this result by the number of lines that there are of this length to get a more accurate evaluation.
 This approach proved to be extremely computationally expensive, as the entire board needs to be scanned for horizontal, vertical and diagonal lines (+ diagonals require checks in two directions) **+** this needs to happen for both players to correctly weigh the evaluation.
 Below is the snippet which does the calculation in the evaluation function using analysis methods which can be found in [C4_Analysis.h](https://github.com/SachaGDM/GPP_MonteCarloSearchTree/blob/main/MCTS_Research/C4Analysis.h)
@@ -396,6 +399,7 @@ eval += GetLongestChain(state, forPlayer, forplayer_nrof_longestchain) * forplay
 eval -= GetLongestChain(state, againstPlayer, againstplayer_nrof_longestchain) * againstplayer_nrof_longestchain;
 ```
 * **[Valued chains](https://github.com/prakhar10/Connect4/blob/master/eval_explanation.txt)**
+
 This approach runs into the same problem as finding the longest line, since it goes off of the same principle. The difference here is that we assign a value to each length of a chain, similar to how chess pieces each have their own value. In this example a connect 4 would be 10 points, connect 3 is half of that, connect 2 is half of that.
 ```cpp
 eval += GetNrChains(state, forPlayer, 4) * 10 + GetNrChains(state, forPlayer, 3) * 5 + GetNrChains(state, forPlayer, 2) * 2;
