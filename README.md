@@ -264,7 +264,7 @@ There are many ways to improve a Monte Carlo Search tree. A popular approach whi
 
 This evaluation function can be used at different stages of the tree search, however it is imporant to note that this approach can have a negative impact on MCTS, as evaluating a position can be performance intensive. 
 
-During my tests I found that I found that whatever evaluation function I wrote, the payoff in strength was outweighed by the loss in performance.
+During my tests I found that whatever evaluation function I wrote, the payoff in strength was outweighed by the loss in performance.
 Additionally, since the evaluation functions I chose to test weren't fully accurate, using an evaluation function resulted in less consistent results regarding the strength of the AI.
 
 But before showing you the different possibilities for a connect 4 evaluation function, let me show you where you could use such a function.
